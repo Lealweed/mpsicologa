@@ -1,0 +1,67 @@
+:root {
+  color-scheme: light;
+  --background: #f8f3ee;
+  --foreground: #2f241d;
+  --muted: #6d584a;
+  --panel: rgba(255, 255, 255, 0.92);
+  --border: rgba(143, 108, 79, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--foreground);
+  background:
+    radial-gradient(circle at top left, rgba(214, 176, 138, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(143, 108, 79, 0.12), transparent 24%),
+    linear-gradient(180deg, #fcfaf7 0%, var(--background) 100%);
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--foreground);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid rgba(143, 108, 79, 0.22);
+  border-color: rgba(143, 108, 79, 0.3);
+}
