@@ -1,0 +1,29 @@
+/* Visão Geral - Cards de resumo */
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 32px;
+}
+.overviewCard {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(157, 114, 128, 0.08);
+  border: 1px solid var(--border);
+  padding: 36px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.overviewTitle {
+  font-size: 15px;
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.overviewValue {
+  font-size: 32px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 800;
+  color: var(--foreground);
+}

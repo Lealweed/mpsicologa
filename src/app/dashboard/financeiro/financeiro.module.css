@@ -1,0 +1,32 @@
+/* Tabela de cobranças financeiras */
+.financeiroTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(157, 114, 128, 0.06);
+  margin-bottom: 32px;
+}
+.financeiroTable th, .financeiroTable td {
+  padding: 16px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.financeiroTable th {
+  background: var(--surface);
+  color: var(--primary-dark);
+  font-size: 15px;
+  font-weight: 700;
+}
+.financeiroTable tr:last-child td {
+  border-bottom: none;
+}
+.financeiroStatusPendente {
+  color: #b54531;
+  font-weight: 700;
+}
+.financeiroStatusPago {
+  color: #2f7a43;
+  font-weight: 700;
+}

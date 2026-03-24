@@ -1,0 +1,64 @@
+/* Tabela de pacientes e prontuário */
+.pacientesTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(157, 114, 128, 0.06);
+  margin-bottom: 32px;
+}
+.pacientesTable th, .pacientesTable td {
+  padding: 16px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.pacientesTable th {
+  background: var(--surface);
+  color: var(--primary-dark);
+  font-size: 15px;
+  font-weight: 700;
+}
+.pacientesTable tr:last-child td {
+  border-bottom: none;
+}
+.pacienteRow {
+  cursor: pointer;
+  transition: background 0.13s;
+}
+.pacienteRow:hover {
+  background: var(--primary-light);
+}
+.prontuarioModal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(157, 114, 128, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.prontuarioContent {
+  background: #fff;
+  border-radius: 18px;
+  padding: 36px 32px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 8px 40px rgba(157, 114, 128, 0.18);
+}
+.prontuarioHeader {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+.prontuarioClose {
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: var(--muted);
+  cursor: pointer;
+}
