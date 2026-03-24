@@ -1,10 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500;1,700;1,800&family=Raleway:wght@300;400;500;600;700&display=swap');
+
 :root {
   color-scheme: light;
-  --background: #f8f3ee;
-  --foreground: #2f241d;
-  --muted: #6d584a;
-  --panel: rgba(255, 255, 255, 0.92);
-  --border: rgba(143, 108, 79, 0.14);
+  --background: #FAF8F5;
+  --foreground: #221E1E;
+  --muted: #78696A;
+  --panel: rgba(255, 255, 255, 0.94);
+  --border: rgba(157, 114, 128, 0.15);
+  --primary: #9D7280;
+  --primary-dark: #7A5561;
+  --primary-light: rgba(157, 114, 128, 0.12);
+  --accent: #C8A89B;
+  --surface: #F3EAE6;
+  --success: #2f7a43;
+  --error: #b54531;
 }
 
 * {
@@ -20,10 +29,10 @@ body {
   min-height: 100vh;
   color: var(--foreground);
   background:
-    radial-gradient(circle at top left, rgba(214, 176, 138, 0.18), transparent 28%),
-    radial-gradient(circle at top right, rgba(143, 108, 79, 0.12), transparent 24%),
-    linear-gradient(180deg, #fcfaf7 0%, var(--background) 100%);
-  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+    radial-gradient(circle at top left, rgba(200, 168, 155, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(157, 114, 128, 0.08), transparent 24%),
+    linear-gradient(180deg, #ffffff 0%, var(--background) 100%);
+  font-family: 'Raleway', 'Segoe UI', sans-serif;
 }
 
 a {
@@ -62,6 +71,6 @@ select {
 input:focus,
 textarea:focus,
 select:focus {
-  outline: 2px solid rgba(143, 108, 79, 0.22);
-  border-color: rgba(143, 108, 79, 0.3);
+  outline: 2px solid rgba(157, 114, 128, 0.22);
+  border-color: rgba(157, 114, 128, 0.3);
 }

@@ -5,19 +5,26 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase/client";
 import { useUser } from "./UserContext";
 
+// TODO: Substitua pelo número real de WhatsApp (somente dígitos com DDI)
+const WHATSAPP_NUMBER = "5500000000000";
+const WHATSAPP_MSG = encodeURIComponent(
+  "Olá Mayara, gostaria de saber mais sobre o atendimento psicológico online."
+);
+const WHATSAPP_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
+
 const headerStyles = {
   shell: {
     position: "sticky",
     top: 0,
     zIndex: 20,
     backdropFilter: "blur(18px)",
-    background: "rgba(250, 246, 240, 0.92)",
-    borderBottom: "1px solid rgba(78, 55, 36, 0.12)",
+    background: "rgba(250, 248, 245, 0.94)",
+    borderBottom: "1px solid rgba(157, 114, 128, 0.12)",
   } as const,
   container: {
     maxWidth: 1180,
     margin: "0 auto",
-    padding: "18px 24px",
+    padding: "16px 24px",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
@@ -32,50 +39,75 @@ const headerStyles = {
     textDecoration: "none",
   },
   mark: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     display: "grid",
     placeItems: "center",
-    background: "linear-gradient(135deg, #8f6c4f, #d6b08a)",
+    background: "linear-gradient(135deg, #9D7280, #C8A89B)",
     color: "#fff",
     fontWeight: 700,
+    fontSize: 15,
+    fontFamily: "'Playfair Display', Georgia, serif",
+    letterSpacing: "0em",
+  },
+  brandName: {
+    display: "block" as const,
+    fontSize: 16,
+    fontWeight: 700,
+    fontFamily: "'Playfair Display', Georgia, serif",
+    lineHeight: 1.1,
+  },
+  brandSub: {
+    display: "block" as const,
+    fontSize: 12,
+    color: "#7a6557",
+    fontWeight: 500,
   },
   nav: {
     display: "flex",
     alignItems: "center",
-    gap: 18,
+    gap: 6,
     flexWrap: "wrap" as const,
-    color: "#5c4739",
   },
+  navLink: {
+    textDecoration: "none",
+    color: "#5E4E52",
+    fontSize: 13,
+    fontWeight: 500,
+    letterSpacing: "0.04em",
+    padding: "6px 12px",
+    borderRadius: 999,
+    transition: "background 0.15s, color 0.15s",
+  } as const,
   actions: {
     display: "flex",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
     flexWrap: "wrap" as const,
   },
   secondaryAction: {
-    border: "1px solid rgba(78, 55, 36, 0.16)",
+    border: "1px solid rgba(157, 114, 128, 0.2)",
     background: "#fff",
-    color: "#5c4739",
+    color: "#5E4E52",
     borderRadius: 999,
-    padding: "10px 16px",
-    fontWeight: 600,
+    padding: "9px 16px",
+    fontWeight: 500,
+    fontSize: 13,
+    letterSpacing: "0.03em",
     textDecoration: "none",
   },
   primaryAction: {
     border: "none",
-    background: "linear-gradient(135deg, #8f6c4f, #c68e61)",
+    background: "linear-gradient(135deg, #9D7280, #C8A89B)",
     color: "#fff",
     borderRadius: 999,
-    padding: "10px 18px",
-    fontWeight: 700,
+    padding: "9px 18px",
+    fontWeight: 600,
+    fontSize: 13,
+    letterSpacing: "0.03em",
     textDecoration: "none",
     cursor: "pointer",
-  },
-  subtle: {
-    fontSize: 14,
-    color: "#7a6557",
   },
 };
 
@@ -85,7 +117,7 @@ export default function SiteHeader() {
   const router = useRouter();
 
   const isDashboard = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
-  const marketingHref = pathname === "/" ? "#planos" : "/#planos";
+  const isHome = pathname === "/" || pathname === "/marketing";
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -97,26 +129,19 @@ export default function SiteHeader() {
     <header style={headerStyles.shell}>
       <div style={headerStyles.container}>
         <Link href="/" style={headerStyles.brand}>
-          <span style={headerStyles.mark}>DP</span>
+          <span style={headerStyles.mark}>MR</span>
           <span>
-            <strong style={{ display: "block", fontSize: 17 }}>Dra. Psicóloga</strong>
-            <span style={headerStyles.subtle}>Atendimento online, laudos e gestão de pacientes</span>
+            <strong style={headerStyles.brandName}>Mayara Rocha</strong>
+            <span style={headerStyles.brandSub}>Psicóloga Clínica · TCC · Online</span>
           </span>
         </Link>
 
         <nav style={headerStyles.nav}>
-          <Link href="/" style={{ textDecoration: "none" }}>
-            Início
-          </Link>
-          <Link href={marketingHref} style={{ textDecoration: "none" }}>
-            Planos
-          </Link>
-          <Link href="/#laudos" style={{ textDecoration: "none" }}>
-            Laudos
-          </Link>
-          <Link href="/#contato" style={{ textDecoration: "none" }}>
-            Contato
-          </Link>
+          <Link href="/" style={headerStyles.navLink}>Início</Link>
+          <Link href="/#sobre" style={headerStyles.navLink}>Sobre</Link>
+          <Link href="/#servicos" style={headerStyles.navLink}>Serviços</Link>
+          <Link href="/#empresas" style={headerStyles.navLink}>Empresas</Link>
+          <Link href="/#contato" style={headerStyles.navLink}>Contato</Link>
         </nav>
 
         <div style={headerStyles.actions}>
@@ -124,7 +149,7 @@ export default function SiteHeader() {
             <>
               {!isDashboard && (
                 <Link href="/dashboard" style={headerStyles.secondaryAction}>
-                  Dashboard
+                  Minha conta
                 </Link>
               )}
               <button type="button" onClick={handleSignOut} style={headerStyles.primaryAction}>
@@ -136,9 +161,14 @@ export default function SiteHeader() {
               <Link href="/auth" style={headerStyles.secondaryAction}>
                 Entrar
               </Link>
-              <Link href="/auth?mode=signup" style={headerStyles.primaryAction}>
-                Criar conta
-              </Link>
+              <a
+                href={isHome ? "#contato" : WHATSAPP_HREF}
+                target={isHome ? "_self" : "_blank"}
+                rel="noopener noreferrer"
+                style={headerStyles.primaryAction}
+              >
+                Agendar
+              </a>
             </>
           )}
         </div>
