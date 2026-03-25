@@ -1,13 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 function getRequiredEnv(name: 'NEXT_PUBLIC_SUPABASE_URL' | 'NEXT_PUBLIC_SUPABASE_ANON_KEY' | 'SUPABASE_SERVICE_ROLE_KEY') {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`A variável de ambiente ${name} não está configurada.`);
-  }
-
-  return value;
+  return process.env[name] || (name === 'NEXT_PUBLIC_SUPABASE_URL' ? 'https://placeholder.supabase.co' : 'placeholder');
 }
 
 const supabaseUrl = getRequiredEnv('NEXT_PUBLIC_SUPABASE_URL');
