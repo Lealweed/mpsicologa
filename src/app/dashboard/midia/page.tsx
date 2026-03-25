@@ -28,20 +28,9 @@ type AddImageForm = { titulo: string; categoria: string; file: File | null };
 type AddVideoForm = { titulo: string; categoria: string; file: File | null };
 
 /* ── Mock data ── */
-const INITIAL_IMAGENS: Imagem[] = [
-  { id: 1, titulo: "Foto da Doutora",     categoria: "Perfil",       url: "https://picsum.photos/600/450?random=1" },
-  { id: 2, titulo: "Hero do Site",        categoria: "Marketing",    url: "https://picsum.photos/800/450?random=2" },
-  { id: 3, titulo: "Consultório",         categoria: "Sobre",        url: "https://picsum.photos/600/450?random=3" },
-  { id: 4, titulo: "Serviço – TCC",       categoria: "Serviços",     url: "https://picsum.photos/600/450?random=4" },
-  { id: 5, titulo: "Serviço – Bariátrico",categoria: "Serviços",     url: "https://picsum.photos/600/450?random=5" },
-  { id: 6, titulo: "Depoimento 1",        categoria: "Depoimentos",  url: "https://picsum.photos/600/450?random=6" },
-];
+const INITIAL_IMAGENS: Imagem[] = [];
 
-const INITIAL_VIDEOS: VideoItem[] = [
-  { id: 1, titulo: "Apresentação da Doutora", categoria: "Marketing",   thumb: "https://picsum.photos/640/360?random=20", duracao: "2:34" },
-  { id: 2, titulo: "O que é TCC?",            categoria: "Educativo",   thumb: "https://picsum.photos/640/360?random=21", duracao: "3:12" },
-  { id: 3, titulo: "Depoimento – Ana",        categoria: "Depoimentos", thumb: "https://picsum.photos/640/360?random=22", duracao: "1:45" },
-];
+const INITIAL_VIDEOS: VideoItem[] = [];
 
 const BLANK_IMG: AddImageForm  = { titulo: "", categoria: "", file: null };
 const BLANK_VID: AddVideoForm  = { titulo: "", categoria: "", file: null };
