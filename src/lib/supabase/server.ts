@@ -1,13 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 function getRequiredEnv(name: 'NEXT_PUBLIC_SUPABASE_URL' | 'NEXT_PUBLIC_SUPABASE_ANON_KEY' | 'SUPABASE_SERVICE_ROLE_KEY') {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`A variável de ambiente ${name} não está configurada.`);
-  }
-
-  return value;
+  return process.env[name] || (name === 'NEXT_PUBLIC_SUPABASE_URL' ? 'https://placeholder.supabase.co' : 'placeholder');
 }
 
 const supabaseUrl = getRequiredEnv('NEXT_PUBLIC_SUPABASE_URL');
@@ -22,7 +16,14 @@ const serverAuthOptions = {
 };
 
 export const createServerSupabase = () =>
-  createClient(supabaseUrl, supabaseAnonKey, serverAuthOptions);
+  createSupabaseClient(supabaseUrl, supabaseAnonKey, serverAuthOptions);
 
 export const createServiceRoleSupabase = () =>
-  createClient(supabaseUrl, supabaseServiceRoleKey, serverAuthOptions);
+  createSupabaseClient(supabaseUrl, supabaseServiceRoleKey, serverAuthOptions);
+
+/** Authenticated client using a user JWT (used by portal API routes). */
+export const createClient = (token?: string) =>
+  createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+    ...serverAuthOptions,
+    ...(token ? { global: { headers: { Authorization: `Bearer ${token}` } } } : {}),
+  });

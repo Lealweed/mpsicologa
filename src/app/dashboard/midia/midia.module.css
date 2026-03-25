@@ -1,0 +1,269 @@
+/* ── New button ── */
+.newBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 11px;
+  padding: 9px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.newBtn:hover { background: var(--primary-dark); }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1.5rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 5px;
+  width: fit-content;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: inherit;
+}
+
+.tab:hover { background: var(--surface); color: var(--foreground); }
+
+.tabActive {
+  background: var(--primary);
+  color: #fff;
+}
+
+.tabCount {
+  background: rgba(255,255,255,0.22);
+  color: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 99px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.tab:not(.tabActive) .tabCount {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+/* ── Media grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+/* ── Media card ── */
+.mediaCard {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.mediaCard:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+.mediaThumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.mediaImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+
+.mediaCard:hover .mediaImg { transform: scale(1.03); }
+
+/* Overlay with action buttons (visible on hover) */
+.mediaOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(34, 30, 30, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.mediaCard:hover .mediaOverlay { opacity: 1; }
+
+.overlayBtn,
+.overlayBtnDanger {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.overlayBtn {
+  background: rgba(255,255,255,0.92);
+  color: var(--primary);
+}
+
+.overlayBtn:hover { transform: scale(1.08); background: #fff; }
+
+.overlayBtnDanger {
+  background: rgba(181, 69, 49, 0.9);
+  color: #fff;
+}
+
+.overlayBtnDanger:hover { transform: scale(1.08); background: #b54531; }
+
+/* Play icon overlay (videos) */
+.playOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.playOverlay svg {
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+  opacity: 0.85;
+}
+
+/* Duration badge */
+.duracao {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.62);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  letter-spacing: 0.02em;
+}
+
+/* Media info row */
+.mediaInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  gap: 8px;
+}
+
+.mediaTitle {
+  font-size: 0.87rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mediaBadge {
+  flex-shrink: 0;
+  font-size: 0.67rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+/* ── Forms ── */
+.hiddenInput { display: none; }
+
+.formStack { display: flex; flex-direction: column; gap: 1rem; }
+
+.fileRow { display: flex; align-items: center; gap: 0.5rem; }
+
+.fileBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 11px;
+  border: 1.5px dashed var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.83rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  font-family: inherit;
+  width: 100%;
+  justify-content: center;
+}
+
+.fileBtn:hover { border-color: var(--primary); color: var(--primary); }
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.btnPrimary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 11px;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: inherit;
+}
+
+.btnPrimary:hover { background: var(--primary-dark); }
+
+.btnSecondary {
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: inherit;
+}
+
+.btnSecondary:hover { background: var(--primary-light); }

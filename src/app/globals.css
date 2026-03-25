@@ -14,6 +14,15 @@
   --surface: #F3EAE6;
   --success: #2f7a43;
   --error: #b54531;
+  --warning: #b06000;
+  --warning-bg: rgba(224, 150, 60, 0.12);
+  --success-bg: rgba(47, 122, 67, 0.1);
+  --shadow-sm: 0 1px 4px rgba(157, 114, 128, 0.07);
+  --shadow-md: 0 2px 12px rgba(157, 114, 128, 0.1);
+  --shadow-lg: 0 8px 32px rgba(157, 114, 128, 0.14);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
 }
 
 * {

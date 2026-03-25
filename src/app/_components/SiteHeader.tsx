@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase/client";
@@ -112,12 +113,33 @@ const headerStyles = {
 };
 
 export default function SiteHeader() {
+
   const { user, loading } = useUser();
   const pathname = usePathname();
   const router = useRouter();
+  const [role, setRole] = useState<string | null>(null);
 
   const isDashboard = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
   const isHome = pathname === "/" || pathname === "/marketing";
+
+  // Buscar o papel do usuário autenticado (psicóloga, paciente, etc)
+  useEffect(() => {
+    async function fetchRole() {
+      if (!user) {
+        setRole(null);
+        return;
+      }
+      try {
+        const res = await fetch("/api/profile/bootstrap");
+        if (!res.ok) return;
+        const data = await res.json();
+        setRole(data?.profile?.role ?? null);
+      } catch {
+        setRole(null);
+      }
+    }
+    fetchRole();
+  }, [user]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -149,7 +171,7 @@ export default function SiteHeader() {
             <>
               {!isDashboard && (
                 <Link href="/dashboard" style={headerStyles.secondaryAction}>
-                  Minha conta
+                  {role === "psychologist" ? "Painel da Doutora" : "Minha conta"}
                 </Link>
               )}
               <button type="button" onClick={handleSignOut} style={headerStyles.primaryAction}>

@@ -1,36 +1,140 @@
-/* Lista/Calendário de sessões */
-.agendaList {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 16px rgba(157, 114, 128, 0.06);
-  border: 1px solid var(--border);
-  padding: 24px 18px;
-  margin-bottom: 32px;
+/* ── New button ── */
+.newBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 11px;
+  padding: 9px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: inherit;
 }
+
+.newBtn:hover { background: var(--primary-dark); }
+
+/* ── Agenda list ── */
+.agendaCard {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
 .agendaItem {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 14px 0;
+  gap: 1rem;
+  padding: 1.1rem 1.75rem;
   border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
 }
-.agendaItem:last-child {
-  border-bottom: none;
-}
-.agendaDate {
-  font-size: 15px;
-  color: var(--primary);
+
+.agendaItem:last-child { border-bottom: none; }
+.agendaItem:hover { background: var(--surface); }
+
+.agendaTime {
+  font-size: 0.93rem;
   font-weight: 700;
-  min-width: 120px;
-}
-.agendaPaciente {
-  font-size: 15px;
-  color: var(--foreground);
-  font-weight: 600;
-}
-.agendaProntuarioLink {
   color: var(--primary);
-  text-decoration: underline;
-  font-size: 14px;
-  cursor: pointer;
+  min-width: 50px;
+  font-variant-numeric: tabular-nums;
 }
+
+.agendaAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.agendaInfo { flex: 1; min-width: 0; }
+
+.agendaPaciente {
+  font-size: 0.93rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.agendaTipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.agendaStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.statusConfirmado { background: var(--success-bg); color: var(--success); }
+.statusPendente   { background: var(--warning-bg); color: var(--warning); }
+
+/* ── Form ── */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.formSpan2 { grid-column: 1 / -1; }
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.btnPrimary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 11px;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: inherit;
+}
+
+.btnPrimary:hover { background: var(--primary-dark); }
+
+.btnSecondary {
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: inherit;
+}
+
+.btnSecondary:hover { background: var(--primary-light); }

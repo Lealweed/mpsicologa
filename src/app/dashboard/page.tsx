@@ -1,313 +1,347 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { bootstrapProfile, type BootstrapProfileResult } from "../../lib/profile/bootstrap";
+import React, { useState } from "react";
 import { useUser } from "../_components/UserContext";
+import {
+  CalendarDays,
+  Users,
+  Wallet,
+  CheckCircle2,
+  Clock,
+  UserPlus,
+  Plus,
+} from "lucide-react";
+import Modal from "./_components/Modal";
+import SessionsChart from "./_components/SessionsChart";
+import styles from "./page.module.css";
 
-function SectionCard({
-  title,
-  description,
-  badge,
-}: {
-  title: string;
-  description: string;
-  badge: string;
-}) {
-  return (
-    <article
-      style={{
-        padding: 22,
-        borderRadius: 24,
-        background: "#fff",
-        border: "1px solid rgba(143, 108, 79, 0.12)",
-        boxShadow: "0 16px 40px rgba(56, 33, 17, 0.05)",
-      }}
-    >
-      <span
-        style={{
-          display: "inline-flex",
-          padding: "6px 10px",
-          borderRadius: 999,
-          background: "#f6ede6",
-          color: "#8f6c4f",
-          fontWeight: 700,
-          marginBottom: 12,
-        }}
-      >
-        {badge}
-      </span>
-      <h3 style={{ margin: "0 0 10px", color: "#2f241d" }}>{title}</h3>
-      <p style={{ margin: 0, color: "#6d584a", lineHeight: 1.6 }}>{description}</p>
-    </article>
-  );
-}
+/* ── types ─────────────────────────────────────────────── */
+type PacienteForm = {
+  nome: string;
+  email: string;
+  telefone: string;
+  plano: string;
+};
+type AgendaForm = {
+  paciente: string;
+  data: string;
+  hora: string;
+  tipo: string;
+  canal: string;
+};
+type Session = {
+  nome: string;
+  tipo: string;
+  hora: string;
+  status: string;
+  initials: string;
+};
 
-function RoleSections({
-  role,
-  patientId,
-}: {
-  role: BootstrapProfileResult["profile"]["role"];
-  patientId: string | null;
-}) {
-  if (role === "admin") {
-    return (
-      <>
-        <SectionCard
-          badge="Admin"
-          title="Painel institucional"
-          description="Sua conta já está validada. O próximo passo natural é conectar relatórios, métricas e rotinas operacionais do consultório."
-        />
-        <SectionCard
-          badge="Governança"
-          title="Próxima entrega sugerida"
-          description="Criar telas para gestão de usuários, planos, pagamentos e trilhas de auditoria para fechar a operação administrativa."
-        />
-      </>
-    );
+const BLANK_P: PacienteForm = { nome: "", email: "", telefone: "", plano: "" };
+const BLANK_A: AgendaForm = {
+  paciente: "",
+  data: "",
+  hora: "",
+  tipo: "TCC Online",
+  canal: "video",
+};
+
+const INITIAL_SESSIONS: Session[] = [
+  { nome: "Mariana Silva", tipo: "TCC Online", hora: "14:00", status: "Confirmado", initials: "MS" },
+  { nome: "Carlos Eduardo", tipo: "Laudo Bariátrico", hora: "15:30", status: "Pendente", initials: "CE" },
+  { nome: "RH – Tech Corp", tipo: "Consultoria B2B", hora: "17:00", status: "Confirmado", initials: "TC" },
+];
+
+const todayLabel = new Date().toLocaleDateString("pt-BR", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+});
+
+/* ── component ──────────────────────────────────────────── */
+export default function DashboardOverview() {
+  const { user } = useUser();
+  const firstName =
+    user?.user_metadata?.full_name?.split(" ")[0] ?? "Dra. Mayara";
+
+  const [cadastrarOpen, setCadastrarOpen] = useState(false);
+  const [agendaOpen, setAgendaOpen] = useState(false);
+  const [pForm, setPForm] = useState<PacienteForm>(BLANK_P);
+  const [aForm, setAForm] = useState<AgendaForm>(BLANK_A);
+  const [sessions, setSessions] = useState<Session[]>(INITIAL_SESSIONS);
+
+  function handleCadastrar(e: React.FormEvent) {
+    e.preventDefault();
+    setCadastrarOpen(false);
+    setPForm(BLANK_P);
   }
 
-  if (role === "psychologist") {
-    return (
-      <>
-        <SectionCard
-          badge="Gestão de Pacientes"
-          title="Pacientes"
-          description="Gerencie o cadastro, informações e histórico dos pacientes."
-        />
-        <SectionCard
-          badge="Prontuário"
-          title="Prontuário Clínico"
-          description="Acesse e registre informações clínicas, anotações e laudos."
-        />
-        <SectionCard
-          badge="Agenda"
-          title="Agenda de Consultas"
-          description="Visualize, marque e edite consultas, com integração ao Google Calendar."
-        />
-        <SectionCard
-          badge="Financeiro"
-          title="Gestão Financeira"
-          description="Controle pagamentos, planos, recebimentos e relatórios financeiros."
-        />
-        <SectionCard
-          badge="Configurações"
-          title="Configurações Gerais"
-          description="Ajuste preferências do sistema, integrações e permissões."
-        />
-        <SectionCard
-          badge="Mídia"
-          title="Imagens e Vídeos"
-          description="Gerencie imagens e vídeos exibidos no sistema."
-        />
-        <SectionCard
-          badge="Textos"
-          title="Textos do Sistema"
-          description="Personalize textos exibidos para pacientes e equipe."
-        />
-      </>
-    );
+  function handleNovoAgendamento(e: React.FormEvent) {
+    e.preventDefault();
+    const initials = aForm.paciente
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+    setSessions((prev) => [
+      ...prev,
+      { nome: aForm.paciente, tipo: aForm.tipo, hora: aForm.hora, status: "Pendente", initials },
+    ]);
+    setAgendaOpen(false);
+    setAForm(BLANK_A);
   }
 
-  if (role === "assistant") {
-    return (
-      <>
-        <SectionCard
-          badge="Assistente"
-          title="Base operacional pronta"
-          description="A conta está apta para apoiar agenda, comunicação com pacientes e organização da rotina de atendimento."
-        />
-        <SectionCard
-          badge="Coordenação"
-          title="Próximo passo sugerido"
-          description="Vale abrir telas de agenda, confirmações e notificações para transformar o painel em uma central de apoio real."
-        />
-      </>
-    );
+  function updateP<K extends keyof PacienteForm>(k: K, v: PacienteForm[K]) {
+    setPForm((p) => ({ ...p, [k]: v }));
+  }
+  function updateA<K extends keyof AgendaForm>(k: K, v: AgendaForm[K]) {
+    setAForm((a) => ({ ...a, [k]: v }));
   }
 
   return (
-    <>
-      <SectionCard
-        badge="Plano"
-        title="Informações do Plano"
-        description={
-          patientId
-            ? "Veja detalhes do seu plano, cobertura, validade e benefícios."
-            : "Seu acesso foi criado, mas ainda falta vincular o registro clínico."
-        }
-      />
-      <SectionCard
-        badge="Consultas"
-        title="Próximas Consultas"
-        description="Confira os dias agendados, horários e histórico de atendimentos."
-      />
-      <SectionCard
-        badge="Informações"
-        title="Dados Relevantes"
-        description="Acompanhe orientações, documentos e informações importantes do seu atendimento."
-      />
-    </>
-  );
-}
-
-export default function DashboardPage() {
-  const { user, loading: userLoading } = useUser();
-  const [result, setResult] = useState<BootstrapProfileResult | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (userLoading || !user) {
-      return;
-    }
-
-    let isMounted = true;
-
-    async function loadDashboard() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const data = await bootstrapProfile();
-
-        if (isMounted) {
-          setResult(data);
-        }
-      } catch (caughtError) {
-        if (isMounted) {
-          const message =
-            caughtError instanceof Error
-              ? caughtError.message
-              : "Não foi possível preparar os dados do seu painel.";
-          setError(message);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadDashboard();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [userLoading, user]);
-
-  if (userLoading || loading) {
-    return <main style={{ padding: "40px 24px" }}>Preparando seu painel...</main>;
-  }
-
-  if (error) {
-    return (
-      <main style={{ padding: "40px 24px" }}>
-        <section
-          style={{
-            maxWidth: 760,
-            margin: "0 auto",
-            padding: 24,
-            borderRadius: 24,
-            background: "#fff3f1",
-            color: "#8c3f2f",
-          }}
-        >
-          <h1 style={{ marginTop: 0 }}>Não conseguimos abrir o dashboard</h1>
-          <p style={{ lineHeight: 1.6 }}>{error}</p>
-        </section>
-      </main>
-    );
-  }
-
-  if (!result || !user) {
-    return null;
-  }
-
-  return (
-    <main style={{ padding: "40px 24px 72px" }}>
-      <section
-        style={{
-          maxWidth: 1120,
-          margin: "0 auto",
-          display: "grid",
-          gap: 24,
-        }}
-      >
-        <article
-          style={{
-            padding: 32,
-            borderRadius: 30,
-            background: "linear-gradient(135deg, rgba(143, 108, 79, 0.14), rgba(214, 176, 138, 0.28))",
-            border: "1px solid rgba(143, 108, 79, 0.14)",
-          }}
-        >
-          <span
-            style={{
-              display: "inline-flex",
-              padding: "6px 12px",
-              borderRadius: 999,
-              background: "#fff",
-              color: "#8f6c4f",
-              fontWeight: 700,
-              marginBottom: 14,
-            }}
-          >
-            {result.profile.role}
-          </span>
-          <h1 style={{ margin: "0 0 10px", fontSize: 36, color: "#2f241d" }}>
-            Olá, {result.profile.fullName}
-          </h1>
-          <p style={{ margin: "0 0 12px", color: "#5f4a3d", lineHeight: 1.7, maxWidth: 760 }}>
-            Seu acesso foi validado com o e-mail <strong>{user.email}</strong>. O sistema já garante autenticação,
-            sessão protegida e bootstrap automático do cadastro principal.
+    <div className={styles.page}>
+      {/* ── Header ── */}
+      <header className={styles.header}>
+        <div>
+          <h1 className={styles.greeting}>Olá, {firstName} 👋</h1>
+          <p className={styles.date} style={{ textTransform: "capitalize" }}>
+            {todayLabel}
           </p>
-          {result.wasCreated && (
-            <p
-              style={{
-                margin: 0,
-                color: "#2f7a43",
-                fontWeight: 600,
-              }}
+        </div>
+        <div className={styles.headerActions}>
+          <button
+            className={`${styles.actionBtn} ${styles.actionBtnSecondary}`}
+            onClick={() => setCadastrarOpen(true)}
+          >
+            <UserPlus size={15} />
+            Cadastrar Paciente
+          </button>
+          <button
+            className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
+            onClick={() => setAgendaOpen(true)}
+          >
+            <Plus size={15} />
+            Novo Agendamento
+          </button>
+        </div>
+      </header>
+
+      {/* ── Stat cards ── */}
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statCardHeader}>
+            <span className={styles.statLabel}>Consultas Hoje</span>
+            <div className={`${styles.statIcon} ${styles.statIconPrimary}`}>
+              <CalendarDays size={17} />
+            </div>
+          </div>
+          <div className={styles.statValue}>{sessions.length + 1}</div>
+          <p className={styles.statDesc}>2 presenciais · 2 online</p>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statCardHeader}>
+            <span className={styles.statLabel}>Pacientes Ativos</span>
+            <div className={`${styles.statIcon} ${styles.statIconAccent}`}>
+              <Users size={17} />
+            </div>
+          </div>
+          <div className={styles.statValue}>32</div>
+          <p className={styles.statDesc}>+3 novos esta semana</p>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statCardHeader}>
+            <span className={styles.statLabel}>Receita do Mês</span>
+            <div className={`${styles.statIcon} ${styles.statIconSuccess}`}>
+              <Wallet size={17} />
+            </div>
+          </div>
+          <div className={styles.statValue}>R$&nbsp;8.450</div>
+          <p className={styles.statDesc}>R$ 1.200 a receber</p>
+        </div>
+      </div>
+
+      {/* ── Bento: chart + sessions ── */}
+      <div className={styles.bentoGrid}>
+        <SessionsChart />
+
+        <section className={styles.sessionsPanel}>
+          <div className={styles.sessionsPanelHeader}>
+            <h2 className={styles.sessionsPanelTitle}>Próximas Sessões</h2>
+            <span className={styles.sessionsBadge}>Hoje</span>
+          </div>
+
+          <div className={styles.sessionsList}>
+            {sessions.map((ag, i) => (
+              <div key={i} className={styles.sessionItem}>
+                <div className={styles.sessionAvatar}>{ag.initials}</div>
+                <div className={styles.sessionInfo}>
+                  <div className={styles.sessionName}>{ag.nome}</div>
+                  <div className={styles.sessionType}>{ag.tipo}</div>
+                </div>
+                <div className={styles.sessionMeta}>
+                  <div className={styles.sessionTime}>{ag.hora || "—"}</div>
+                  <span
+                    className={`${styles.sessionStatus} ${
+                      ag.status === "Confirmado"
+                        ? styles.statusConfirmado
+                        : styles.statusPendente
+                    }`}
+                  >
+                    {ag.status === "Confirmado" ? (
+                      <CheckCircle2 size={11} />
+                    ) : (
+                      <Clock size={11} />
+                    )}
+                    {ag.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* ── Modal: Cadastrar Paciente ── */}
+      <Modal
+        isOpen={cadastrarOpen}
+        onClose={() => { setCadastrarOpen(false); setPForm(BLANK_P); }}
+        title="Cadastrar Paciente"
+      >
+        <form onSubmit={handleCadastrar}>
+          <div className={styles.formGrid}>
+            <label>
+              Nome completo
+              <input
+                type="text"
+                value={pForm.nome}
+                onChange={(e) => updateP("nome", e.target.value)}
+                placeholder="Nome e sobrenome"
+                required
+              />
+            </label>
+            <label>
+              Email
+              <input
+                type="email"
+                value={pForm.email}
+                onChange={(e) => updateP("email", e.target.value)}
+                placeholder="email@exemplo.com"
+                required
+              />
+            </label>
+            <label>
+              Telefone
+              <input
+                type="tel"
+                value={pForm.telefone}
+                onChange={(e) => updateP("telefone", e.target.value)}
+                placeholder="(00) 00000-0000"
+              />
+            </label>
+            <label>
+              Plano
+              <select
+                value={pForm.plano}
+                onChange={(e) => updateP("plano", e.target.value)}
+              >
+                <option value="">Selecionar...</option>
+                <option>TCC Mensal</option>
+                <option>Bariátrico</option>
+                <option>Acompanhamento</option>
+              </select>
+            </label>
+          </div>
+          <div className={styles.formActions}>
+            <button
+              type="button"
+              className={styles.btnSecondary}
+              onClick={() => { setCadastrarOpen(false); setPForm(BLANK_P); }}
             >
-              Seu perfil foi criado automaticamente nesta primeira entrada.
-            </p>
-          )}
-        </article>
+              Cancelar
+            </button>
+            <button type="submit" className={styles.btnPrimary}>
+              Cadastrar
+            </button>
+          </div>
+        </form>
+      </Modal>
 
-        <section
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: 18,
-          }}
-        >
-          <SectionCard
-            badge="Sessão"
-            title="Acesso protegido"
-            description="As rotas públicas e privadas agora estão separadas, então o dashboard só abre para usuários autenticados."
-          />
-          <SectionCard
-            badge="Perfil"
-            title="Bootstrap automático"
-            description="Ao entrar, o sistema garante perfil principal e registro de paciente quando a conta pertence ao fluxo público."
-          />
-          <SectionCard
-            badge="Base"
-            title="Pronto para evoluir"
-            description="A partir daqui dá para encaixar agendas, planos, pagamentos e laudos em cima de uma autenticação estável."
-          />
-        </section>
-
-        <section
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 18,
-          }}
-        >
-          <RoleSections role={result.profile.role} patientId={result.patientId} />
-        </section>
-      </section>
-    </main>
+      {/* ── Modal: Novo Agendamento ── */}
+      <Modal
+        isOpen={agendaOpen}
+        onClose={() => { setAgendaOpen(false); setAForm(BLANK_A); }}
+        title="Novo Agendamento"
+      >
+        <form onSubmit={handleNovoAgendamento}>
+          <div className={styles.formGrid}>
+            <label className={styles.formSpan2}>
+              Paciente
+              <input
+                type="text"
+                value={aForm.paciente}
+                onChange={(e) => updateA("paciente", e.target.value)}
+                placeholder="Nome do paciente"
+                required
+              />
+            </label>
+            <label>
+              Data
+              <input
+                type="date"
+                value={aForm.data}
+                onChange={(e) => updateA("data", e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              Hora
+              <input
+                type="time"
+                value={aForm.hora}
+                onChange={(e) => updateA("hora", e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              Tipo de sessão
+              <select
+                value={aForm.tipo}
+                onChange={(e) => updateA("tipo", e.target.value)}
+              >
+                <option>TCC Online</option>
+                <option>Laudo Bariátrico</option>
+                <option>Consultoria B2B</option>
+                <option>Acompanhamento</option>
+              </select>
+            </label>
+            <label>
+              Canal
+              <select
+                value={aForm.canal}
+                onChange={(e) => updateA("canal", e.target.value)}
+              >
+                <option value="video">Vídeo</option>
+                <option value="presencial">Presencial</option>
+              </select>
+            </label>
+          </div>
+          <div className={styles.formActions}>
+            <button
+              type="button"
+              className={styles.btnSecondary}
+              onClick={() => { setAgendaOpen(false); setAForm(BLANK_A); }}
+            >
+              Cancelar
+            </button>
+            <button type="submit" className={styles.btnPrimary}>
+              Agendar
+            </button>
+          </div>
+        </form>
+      </Modal>
+    </div>
   );
 }

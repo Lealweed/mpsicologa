@@ -1,29 +1,313 @@
-/* Visão Geral - Cards de resumo */
-.overviewGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 32px;
+/* ── Page ── */
+.page {
+  animation: fadeUp 0.35s ease both;
 }
-.overviewCard {
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.greeting {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin: 0 0 5px 0;
+  line-height: 1.2;
+}
+
+.date {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+/* ── Action buttons ── */
+.headerActions {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 11px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  border: none;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.actionBtnPrimary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.actionBtnPrimary:hover {
+  background: var(--primary-dark);
+}
+
+.actionBtnSecondary {
   background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 4px 24px rgba(157, 114, 128, 0.08);
+  color: var(--primary);
   border: 1px solid var(--border);
-  padding: 36px 28px;
+}
+
+.actionBtnSecondary:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+
+/* ── Stats grid ── */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.statCard {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
+  gap: 0.4rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.overviewTitle {
-  font-size: 15px;
-  color: var(--primary);
+
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.statCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.statLabel {
+  font-size: 0.72rem;
   font-weight: 700;
-  margin-bottom: 6px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
 }
-.overviewValue {
-  font-size: 32px;
-  font-family: 'Playfair Display', Georgia, serif;
-  font-weight: 800;
+
+.statIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statIconPrimary  { background: var(--primary-light); color: var(--primary); }
+.statIconAccent   { background: rgba(200,168,155,0.2); color: #8f6c5a; }
+.statIconSuccess  { background: var(--success-bg); color: var(--success); }
+
+.statValue {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 2.2rem;
+  font-weight: 700;
   color: var(--foreground);
+  line-height: 1;
 }
+
+.statDesc {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* ── Bento grid ── */
+.bentoGrid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .bentoGrid { grid-template-columns: 1fr; }
+}
+
+/* ── Sessions panel ── */
+.sessionsPanel {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.sessionsPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.5rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.sessionsPanelTitle {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.sessionsBadge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 3px 9px;
+  border-radius: 99px;
+}
+
+.sessionsList { display: flex; flex-direction: column; }
+
+.sessionItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.sessionItem:last-child { border-bottom: none; }
+.sessionItem:hover { background: var(--surface); }
+
+.sessionAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.sessionInfo { flex: 1; min-width: 0; }
+
+.sessionName {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sessionType {
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.sessionMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sessionTime {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.sessionStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.67rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.statusConfirmado { background: var(--success-bg); color: var(--success); }
+.statusPendente   { background: var(--warning-bg); color: var(--warning); }
+
+/* ── Form ── */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.formSpan2 { grid-column: 1 / -1; }
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.btnPrimary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 11px;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: inherit;
+}
+
+.btnPrimary:hover { background: var(--primary-dark); }
+
+.btnSecondary {
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: inherit;
+}
+
+.btnSecondary:hover { background: var(--primary-light); }

@@ -1,32 +1,170 @@
-/* Tabela de cobranças financeiras */
+/* ── New Lançamento button ── */
+.newBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 11px;
+  padding: 9px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: inherit;
+}
+
+.newBtn:hover { background: var(--primary-dark); }
+
+/* ── Summary cards ── */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.summaryCard {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.summaryCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.summaryIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.3rem;
+}
+
+.summaryCardSuccess .summaryIcon { background: var(--success-bg); color: var(--success); }
+.summaryCardWarning .summaryIcon { background: var(--warning-bg); color: var(--warning); }
+.summaryCardPrimary .summaryIcon { background: var(--primary-light); color: var(--primary); }
+
+.summaryValue {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--foreground);
+  line-height: 1.1;
+}
+
+.summaryLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+/* ── Table ── */
+.tableWrapper {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
 .financeiroTable {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 2px 16px rgba(157, 114, 128, 0.06);
-  margin-bottom: 32px;
 }
-.financeiroTable th, .financeiroTable td {
-  padding: 16px 18px;
+
+.financeiroTable th,
+.financeiroTable td {
+  padding: 13px 20px;
   text-align: left;
   border-bottom: 1px solid var(--border);
 }
+
 .financeiroTable th {
   background: var(--surface);
   color: var(--primary-dark);
-  font-size: 15px;
+  font-size: 0.72rem;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
-.financeiroTable tr:last-child td {
-  border-bottom: none;
-}
-.financeiroStatusPendente {
-  color: #b54531;
+
+.financeiroTable tbody tr:last-child td { border-bottom: none; }
+
+.financeiroTable tbody tr { transition: background 0.13s; }
+.financeiroTable tbody tr:hover { background: var(--surface); }
+
+.tdBold  { font-weight: 600; font-size: 0.9rem; color: var(--foreground); }
+.tdMuted { font-size: 0.86rem; color: var(--muted); }
+
+.statusPago,
+.statusPendente {
+  display: inline-block;
+  font-size: 0.7rem;
   font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 99px;
 }
-.financeiroStatusPago {
-  color: #2f7a43;
-  font-weight: 700;
+
+.statusPago    { background: var(--success-bg); color: var(--success); }
+.statusPendente{ background: var(--warning-bg); color: var(--warning); }
+
+/* ── Form (used inside Modal) ── */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
 }
+
+.formSpan2 { grid-column: 1 / -1; }
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.btnPrimary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 11px;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: inherit;
+}
+
+.btnPrimary:hover { background: var(--primary-dark); }
+
+.btnSecondary {
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: inherit;
+}
+
+.btnSecondary:hover { background: var(--primary-light); }

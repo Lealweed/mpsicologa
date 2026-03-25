@@ -1,0 +1,129 @@
+/* Portal do Paciente - CSS principal */
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e6cfc7 0%, #b48a78 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+}
+
+.loginBox {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(180, 138, 120, 0.15);
+  padding: 2.5rem 2rem;
+  max-width: 350px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: #b48a78;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input {
+  border: 1px solid #e6cfc7;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background: #fff8f5;
+  color: #b48a78;
+  outline: none;
+  transition: border 0.2s;
+}
+.input:focus {
+  border: 1.5px solid #b48a78;
+}
+
+.button {
+  background: linear-gradient(90deg, #b48a78 0%, #e6cfc7 100%);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 0.9rem 0;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.button:active {
+  background: #b48a78;
+}
+
+.error {
+  color: #b04848;
+  background: #fff0f0;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.tabs {
+  display: flex;
+  justify-content: space-between;
+  background: #fff8f5;
+  border-radius: 12px;
+  margin: 1.5rem 0 1rem 0;
+  box-shadow: 0 2px 8px rgba(180, 138, 120, 0.07);
+}
+
+.tab {
+  flex: 1;
+  padding: 1rem 0.5rem;
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: #b48a78;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.tabActive {
+  background: #e6cfc7;
+  color: #a06c5a;
+}
+
+.tabPanel {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(180, 138, 120, 0.08);
+  padding: 1.5rem 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+@media (max-width: 600px) {
+  .loginBox, .card, .tabPanel {
+    padding: 1.2rem 0.7rem;
+  }
+  .tabs {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .tab {
+    padding: 0.7rem 0.2rem;
+    font-size: 1rem;
+  }
+}

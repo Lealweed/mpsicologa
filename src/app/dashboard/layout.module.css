@@ -1,91 +1,230 @@
-/* Sidebar e layout do dashboard clínico */
+/* ── Dashboard Shell ── */
 .dashboardRoot {
   display: flex;
   min-height: 100vh;
   background: var(--background);
 }
+
+/* ── Sidebar ── */
 .sidebar {
-  width: 250px;
-  background: linear-gradient(135deg, #9D7280 80%, #C8A89B 100%);
-  color: #fff;
+  width: 256px;
+  flex-shrink: 0;
+  background: linear-gradient(160deg, #6b4a57 0%, #9d7280 50%, #c8a89b 100%);
   display: flex;
   flex-direction: column;
-  padding: 36px 0 24px 0;
-  gap: 24px;
-  box-shadow: 2px 0 24px rgba(157, 114, 128, 0.08);
+  padding: 28px 14px 22px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
+
+/* Brand */
 .sidebarBrand {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 22px;
-  font-weight: 800;
-  color: #fff;
-  margin-bottom: 32px;
-  text-align: center;
-  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 6px;
+  margin-bottom: 36px;
 }
+
+.brandMark {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 800;
+  font-size: 14px;
+  color: #fff;
+  flex-shrink: 0;
+  backdrop-filter: blur(4px);
+}
+
+.brandName {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.brandSub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* Nav */
 .sidebarNav {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: auto;
+  gap: 3px;
+  flex: 1;
 }
-.sidebarNavLink {
-  color: #fff;
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  border-radius: 11px;
   text-decoration: none;
-  font-weight: 600;
-  font-size: 15px;
-  padding: 12px 32px;
-  border-radius: 8px 0 0 8px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   transition: background 0.18s, color 0.18s;
 }
-.sidebarNavLinkActive,
-.sidebarNavLink:hover {
-  background: rgba(255,255,255,0.13);
+
+.navLink:hover {
+  background: rgba(255, 255, 255, 0.14);
   color: #fff;
 }
-.sidebarFooter {
-  font-size: 13px;
-  color: #f3eae6;
-  text-align: center;
-  margin-top: 32px;
-  opacity: 0.7;
+
+.navLinkActive {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
-.dashboardContent {
-  flex: 1;
-  padding: 48px 40px 32px 40px;
-  background: var(--background);
-  min-width: 0;
+
+/* Footer */
+.sidebarFooter {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 18px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
+
+.userBadge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+}
+
+.userAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.userInfo {
+  min-width: 0;
+}
+
+.userName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userRole {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.62);
+  margin-top: 1px;
+}
+
+.signOutBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.82);
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  width: 100%;
+  font-family: inherit;
+}
+
+.signOutBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* Content */
+.dashboardContent {
+  flex: 1;
+  padding: 40px 48px;
+  min-width: 0;
+}
+
+/* ── Responsive ── */
 @media (max-width: 900px) {
   .dashboardRoot {
     flex-direction: column;
   }
+
   .sidebar {
     width: 100%;
+    height: auto;
+    position: static;
+    padding: 14px 16px;
     flex-direction: row;
-    padding: 18px 0;
-    gap: 0;
-    box-shadow: none;
-    border-bottom: 1.5px solid var(--border);
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
   }
+
   .sidebarBrand {
-    font-size: 18px;
     margin-bottom: 0;
-    margin-right: 18px;
+    margin-right: auto;
   }
+
   .sidebarNav {
     flex-direction: row;
-    gap: 0;
-    margin-bottom: 0;
+    flex: none;
+    gap: 2px;
   }
-  .sidebarNavLink {
-    padding: 10px 18px;
-    border-radius: 8px 8px 0 0;
-    font-size: 14px;
+
+  .navLink {
+    padding: 8px 11px;
+    font-size: 13px;
   }
+
+  .sidebarFooter {
+    border-top: none;
+    padding-top: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .userInfo {
+    display: none;
+  }
+
+  .signOutBtn {
+    width: auto;
+    padding: 8px 11px;
+  }
+
   .dashboardContent {
-    padding: 28px 10px 18px 10px;
+    padding: 24px 20px;
   }
 }
