@@ -1,283 +1,149 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { bootstrapProfile, type BootstrapProfileResult } from "../../lib/profile/bootstrap";
+import React from "react";
 import { useUser } from "../_components/UserContext";
 
-function SectionCard({
-  title,
-  description,
-  badge,
-}: {
-  title: string;
-  description: string;
-  badge: string;
-}) {
-  return (
-    <article
-      style={{
-        padding: 22,
-        borderRadius: 24,
-        background: "#fff",
-        border: "1px solid rgba(143, 108, 79, 0.12)",
-        boxShadow: "0 16px 40px rgba(56, 33, 17, 0.05)",
-      }}
-    >
-      <span
-        style={{
-          display: "inline-flex",
-          padding: "6px 10px",
-          borderRadius: 999,
-          background: "#f6ede6",
-          color: "#8f6c4f",
-          fontWeight: 700,
-          marginBottom: 12,
-        }}
-      >
-        {badge}
-      </span>
-      <h3 style={{ margin: "0 0 10px", color: "#2f241d" }}>{title}</h3>
-      <p style={{ margin: 0, color: "#6d584a", lineHeight: 1.6 }}>{description}</p>
-    </article>
-  );
-}
-
-function RoleSections({
-  role,
-  patientId,
-}: {
-  role: BootstrapProfileResult["profile"]["role"];
-  patientId: string | null;
-}) {
-  if (role === "admin") {
-    return (
-      <>
-        <SectionCard
-          badge="Admin"
-          title="Painel institucional"
-          description="Sua conta já está validada. O próximo passo natural é conectar relatórios, métricas e rotinas operacionais do consultório."
-        />
-        <SectionCard
-          badge="Governança"
-          title="Próxima entrega sugerida"
-          description="Criar telas para gestão de usuários, planos, pagamentos e trilhas de auditoria para fechar a operação administrativa."
-        />
-      </>
-    );
-  }
-
-  if (role === "psychologist") {
-    return (
-      <>
-        <SectionCard
-          badge="Psicóloga"
-          title="Agenda profissional"
-          description="Seu acesso está pronto. Agora vale ligar este painel às tabelas de disponibilidade, pacientes e laudos para operar a rotina clínica."
-        />
-        <SectionCard
-          badge="Atendimento"
-          title="Módulos priorizados"
-          description="As próximas peças de maior valor são agenda, prontuário resumido, anotações de sessão e emissão de laudos bariátricos."
-        />
-      </>
-    );
-  }
-
-  if (role === "assistant") {
-    return (
-      <>
-        <SectionCard
-          badge="Assistente"
-          title="Base operacional pronta"
-          description="A conta está apta para apoiar agenda, comunicação com pacientes e organização da rotina de atendimento."
-        />
-        <SectionCard
-          badge="Coordenação"
-          title="Próximo passo sugerido"
-          description="Vale abrir telas de agenda, confirmações e notificações para transformar o painel em uma central de apoio real."
-        />
-      </>
-    );
-  }
+export default function DashboardOverview() {
+  const { user } = useUser();
 
   return (
-    <>
-      <SectionCard
-        badge="Paciente"
-        title="Cadastro concluído"
-        description={
-          patientId
-            ? "Seu perfil de paciente foi preparado com sucesso. Agora o sistema já consegue vincular planos, sessões e laudos à sua conta."
-            : "Seu acesso foi criado, mas ainda falta vincular o registro clínico. Vale revisar o bootstrap no banco antes de seguir para módulos assistenciais."
-        }
-      />
-      <SectionCard
-        badge="Próximos passos"
-        title="O que este painel já suporta"
-        description="Login, proteção de rota, bootstrap de perfil e base para evoluir agendamentos, planos e emissão de laudos sem retrabalho na autenticação."
-      />
-    </>
-  );
-}
+    <div style={{ animation: "fadeIn 0.5s ease" }}>
+      <header style={{ marginBottom: "3rem" }}>
+        <h1 style={{ 
+          fontFamily: "'Playfair Display', serif", 
+          fontSize: "2.5rem", 
+          color: "#2C3E35", 
+          margin: "0 0 0.5rem 0",
+          fontWeight: 400
+        }}>
+          Olá, Dra. Mayara
+        </h1>
+        <p style={{ color: "#7A7A7A", margin: 0, fontSize: "1.1rem" }}>
+          Aqui está o resumo da sua clínica hoje.
+        </p>
+      </header>
 
-export default function DashboardPage() {
-  const { user, loading: userLoading } = useUser();
-  const [result, setResult] = useState<BootstrapProfileResult | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+      {/* Cards de Resumo */}
+      <div style={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", 
+        gap: "1.5rem",
+        marginBottom: "3rem"
+      }}>
+        <div style={cardStyle}>
+          <div style={cardHeaderStyle}>
+            <span style={cardTitleStyle}>Consultas Hoje</span>
+            <span style={{ fontSize: "1.5rem" }}>📅</span>
+          </div>
+          <div style={cardValueStyle}>4</div>
+          <p style={cardDescStyle}>2 presenciais, 2 online</p>
+        </div>
 
-  useEffect(() => {
-    if (userLoading || !user) {
-      return;
-    }
+        <div style={cardStyle}>
+          <div style={cardHeaderStyle}>
+            <span style={cardTitleStyle}>Pacientes Ativos</span>
+            <span style={{ fontSize: "1.5rem" }}>👥</span>
+          </div>
+          <div style={cardValueStyle}>32</div>
+          <p style={cardDescStyle}>+3 novos esta semana</p>
+        </div>
 
-    let isMounted = true;
+        <div style={cardStyle}>
+          <div style={cardHeaderStyle}>
+            <span style={cardTitleStyle}>Receita do Mês</span>
+            <span style={{ fontSize: "1.5rem" }}>💳</span>
+          </div>
+          <div style={cardValueStyle}>R$ 8.450</div>
+          <p style={cardDescStyle}>R$ 1.200 a receber</p>
+        </div>
+      </div>
 
-    async function loadDashboard() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const data = await bootstrapProfile();
-
-        if (isMounted) {
-          setResult(data);
-        }
-      } catch (caughtError) {
-        if (isMounted) {
-          const message =
-            caughtError instanceof Error
-              ? caughtError.message
-              : "Não foi possível preparar os dados do seu painel.";
-          setError(message);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadDashboard();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [userLoading, user]);
-
-  if (userLoading || loading) {
-    return <main style={{ padding: "40px 24px" }}>Preparando seu painel...</main>;
-  }
-
-  if (error) {
-    return (
-      <main style={{ padding: "40px 24px" }}>
-        <section
-          style={{
-            maxWidth: 760,
-            margin: "0 auto",
-            padding: 24,
-            borderRadius: 24,
-            background: "#fff3f1",
-            color: "#8c3f2f",
-          }}
-        >
-          <h1 style={{ marginTop: 0 }}>Não conseguimos abrir o dashboard</h1>
-          <p style={{ lineHeight: 1.6 }}>{error}</p>
-        </section>
-      </main>
-    );
-  }
-
-  if (!result || !user) {
-    return null;
-  }
-
-  return (
-    <main style={{ padding: "40px 24px 72px" }}>
-      <section
-        style={{
-          maxWidth: 1120,
-          margin: "0 auto",
-          display: "grid",
-          gap: 24,
-        }}
-      >
-        <article
-          style={{
-            padding: 32,
-            borderRadius: 30,
-            background: "linear-gradient(135deg, rgba(143, 108, 79, 0.14), rgba(214, 176, 138, 0.28))",
-            border: "1px solid rgba(143, 108, 79, 0.14)",
-          }}
-        >
-          <span
-            style={{
-              display: "inline-flex",
-              padding: "6px 12px",
-              borderRadius: 999,
-              background: "#fff",
-              color: "#8f6c4f",
-              fontWeight: 700,
-              marginBottom: 14,
-            }}
-          >
-            {result.profile.role}
-          </span>
-          <h1 style={{ margin: "0 0 10px", fontSize: 36, color: "#2f241d" }}>
-            Olá, {result.profile.fullName}
-          </h1>
-          <p style={{ margin: "0 0 12px", color: "#5f4a3d", lineHeight: 1.7, maxWidth: 760 }}>
-            Seu acesso foi validado com o e-mail <strong>{user.email}</strong>. O sistema já garante autenticação,
-            sessão protegida e bootstrap automático do cadastro principal.
-          </p>
-          {result.wasCreated && (
-            <p
-              style={{
-                margin: 0,
-                color: "#2f7a43",
-                fontWeight: 600,
-              }}
-            >
-              Seu perfil foi criado automaticamente nesta primeira entrada.
-            </p>
-          )}
-        </article>
-
-        <section
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: 18,
-          }}
-        >
-          <SectionCard
-            badge="Sessão"
-            title="Acesso protegido"
-            description="As rotas públicas e privadas agora estão separadas, então o dashboard só abre para usuários autenticados."
-          />
-          <SectionCard
-            badge="Perfil"
-            title="Bootstrap automático"
-            description="Ao entrar, o sistema garante perfil principal e registro de paciente quando a conta pertence ao fluxo público."
-          />
-          <SectionCard
-            badge="Base"
-            title="Pronto para evoluir"
-            description="A partir daqui dá para encaixar agendas, planos, pagamentos e laudos em cima de uma autenticação estável."
-          />
-        </section>
-
-        <section
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 18,
-          }}
-        >
-          <RoleSections role={result.profile.role} patientId={result.patientId} />
-        </section>
+      {/* Próximos Atendimentos */}
+      <section style={{ backgroundColor: "#FFFFFF", padding: "2rem", borderRadius: "24px", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.5rem", color: "#2C3E35", margin: "0 0 1.5rem 0", fontWeight: 400 }}>
+          Próximas Sessões
+        </h2>
+        
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {[
+            { nome: "Mariana Silva", tipo: "TCC Online", hora: "14:00", status: "Confirmado" },
+            { nome: "Carlos Eduardo", tipo: "Laudo Bariátrico", hora: "15:30", status: "Pendente" },
+            { nome: "RH - Tech Corp", tipo: "Consultoria B2B", hora: "17:00", status: "Confirmado" },
+          ].map((ag, i) => (
+            <div key={i} style={{ 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: "center",
+              padding: "1.2rem",
+              backgroundColor: "#FAF8F5",
+              borderRadius: "16px",
+              border: "1px solid rgba(0,0,0,0.03)"
+            }}>
+              <div>
+                <div style={{ fontWeight: 600, color: "#1A1A1A", marginBottom: "0.2rem" }}>{ag.nome}</div>
+                <div style={{ fontSize: "0.85rem", color: "#7A7A7A" }}>{ag.tipo}</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+                <div style={{ fontWeight: 500, color: "#9D7280" }}>{ag.hora}</div>
+                <span style={{ 
+                  fontSize: "0.75rem", 
+                  padding: "0.3rem 0.8rem", 
+                  borderRadius: "50px",
+                  backgroundColor: ag.status === "Confirmado" ? "#E6F4EA" : "#FFF4E5",
+                  color: ag.status === "Confirmado" ? "#1E4620" : "#663C00",
+                  fontWeight: 600
+                }}>
+                  {ag.status}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
-    </main>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}} />
+    </div>
   );
 }
+
+const cardStyle: React.CSSProperties = {
+  backgroundColor: "#FFFFFF",
+  padding: "2rem",
+  borderRadius: "24px",
+  boxShadow: "0 4px 20px rgba(0,0,0,0.02)",
+  display: "flex",
+  flexDirection: "column",
+  gap: "1rem"
+};
+
+const cardHeaderStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center"
+};
+
+const cardTitleStyle: React.CSSProperties = {
+  fontSize: "0.9rem",
+  fontWeight: 600,
+  color: "#7A7A7A",
+  textTransform: "uppercase",
+  letterSpacing: "0.05em"
+};
+
+const cardValueStyle: React.CSSProperties = {
+  fontFamily: "'Playfair Display', serif",
+  fontSize: "3rem",
+  color: "#9D7280",
+  lineHeight: 1
+};
+
+const cardDescStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: "0.85rem",
+  color: "#A0A0A0"
+};
