@@ -70,14 +70,39 @@ function RoleSections({
     return (
       <>
         <SectionCard
-          badge="Psicóloga"
-          title="Agenda profissional"
-          description="Seu acesso está pronto. Agora vale ligar este painel às tabelas de disponibilidade, pacientes e laudos para operar a rotina clínica."
+          badge="Gestão de Pacientes"
+          title="Pacientes"
+          description="Gerencie o cadastro, informações e histórico dos pacientes."
         />
         <SectionCard
-          badge="Atendimento"
-          title="Módulos priorizados"
-          description="As próximas peças de maior valor são agenda, prontuário resumido, anotações de sessão e emissão de laudos bariátricos."
+          badge="Prontuário"
+          title="Prontuário Clínico"
+          description="Acesse e registre informações clínicas, anotações e laudos."
+        />
+        <SectionCard
+          badge="Agenda"
+          title="Agenda de Consultas"
+          description="Visualize, marque e edite consultas, com integração ao Google Calendar."
+        />
+        <SectionCard
+          badge="Financeiro"
+          title="Gestão Financeira"
+          description="Controle pagamentos, planos, recebimentos e relatórios financeiros."
+        />
+        <SectionCard
+          badge="Configurações"
+          title="Configurações Gerais"
+          description="Ajuste preferências do sistema, integrações e permissões."
+        />
+        <SectionCard
+          badge="Mídia"
+          title="Imagens e Vídeos"
+          description="Gerencie imagens e vídeos exibidos no sistema."
+        />
+        <SectionCard
+          badge="Textos"
+          title="Textos do Sistema"
+          description="Personalize textos exibidos para pacientes e equipe."
         />
       </>
     );
@@ -103,18 +128,23 @@ function RoleSections({
   return (
     <>
       <SectionCard
-        badge="Paciente"
-        title="Cadastro concluído"
+        badge="Plano"
+        title="Informações do Plano"
         description={
           patientId
-            ? "Seu perfil de paciente foi preparado com sucesso. Agora o sistema já consegue vincular planos, sessões e laudos à sua conta."
-            : "Seu acesso foi criado, mas ainda falta vincular o registro clínico. Vale revisar o bootstrap no banco antes de seguir para módulos assistenciais."
+            ? "Veja detalhes do seu plano, cobertura, validade e benefícios."
+            : "Seu acesso foi criado, mas ainda falta vincular o registro clínico."
         }
       />
       <SectionCard
-        badge="Próximos passos"
-        title="O que este painel já suporta"
-        description="Login, proteção de rota, bootstrap de perfil e base para evoluir agendamentos, planos e emissão de laudos sem retrabalho na autenticação."
+        badge="Consultas"
+        title="Próximas Consultas"
+        description="Confira os dias agendados, horários e histórico de atendimentos."
+      />
+      <SectionCard
+        badge="Informações"
+        title="Dados Relevantes"
+        description="Acompanhe orientações, documentos e informações importantes do seu atendimento."
       />
     </>
   );
