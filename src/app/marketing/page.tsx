@@ -7,6 +7,8 @@ import {
 } from "@/lib/site-media";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
+export const dynamic = "force-dynamic";
+
 type MarketingImages = Record<MarketingImageCategory, string | null>;
 
 function createEmptyMarketingImages(): MarketingImages {
