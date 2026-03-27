@@ -109,6 +109,31 @@ export async function uploadMediaFile(file: File, kind: MediaKind) {
   };
 }
 
+export async function createSignedUploadData(fileName: string, kind: MediaKind) {
+  const supabaseAdmin = getSupabaseAdmin();
+  await ensurePublicMediaBucket();
+
+  const sanitizedName = sanitizeFileName(fileName);
+  const storagePath = `${kind}/${Date.now()}_${sanitizedName}`;
+  const { data, error } = await supabaseAdmin.storage
+    .from(PUBLIC_MEDIA_BUCKET)
+    .createSignedUploadUrl(storagePath);
+
+  if (error || !data) {
+    throw new Error(
+      error?.message ?? "Nao foi possivel criar o token de upload da midia.",
+    );
+  }
+
+  return {
+    path: data.path,
+    token: data.token,
+    publicUrl: supabaseAdmin.storage
+      .from(PUBLIC_MEDIA_BUCKET)
+      .getPublicUrl(storagePath).data.publicUrl,
+  };
+}
+
 export async function removeMediaFile(publicUrl: string) {
   const supabaseAdmin = getSupabaseAdmin();
   const storagePath = extractStoragePath(publicUrl);

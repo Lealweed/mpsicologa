@@ -3,10 +3,58 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
   encodeCategory,
   mapRowToMediaItem,
+  removeMediaFile,
   type MediaKind,
   type SiteMediaRow,
   uploadMediaFile,
 } from "./_utils";
+
+type CreateMediaPayload = {
+  title: string;
+  category: string;
+  kind: MediaKind;
+  url: string;
+};
+
+async function parseCreatePayload(request: Request): Promise<CreateMediaPayload> {
+  const contentType = request.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    const body = (await request.json()) as {
+      title?: string;
+      category?: string;
+      kind?: MediaKind;
+      url?: string;
+    };
+
+    return {
+      title: String(body.title ?? "").trim(),
+      category: String(body.category ?? "").trim(),
+      kind: body.kind === "video" ? "video" : "image",
+      url: String(body.url ?? "").trim(),
+    };
+  }
+
+  const formData = await request.formData();
+  const title = String(formData.get("title") ?? "").trim();
+  const category = String(formData.get("category") ?? "").trim();
+  const rawKind = String(formData.get("kind") ?? "image").trim();
+  const kind: MediaKind = rawKind === "video" ? "video" : "image";
+  const file = formData.get("file");
+
+  if (!(file instanceof File)) {
+    return { title, category, kind, url: "" };
+  }
+
+  const upload = await uploadMediaFile(file, kind);
+
+  return {
+    title,
+    category,
+    kind,
+    url: upload.publicUrl,
+  };
+}
 
 export async function GET() {
   try {
@@ -37,34 +85,30 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const supabaseAdmin = getSupabaseAdmin();
-    const formData = await request.formData();
-    const title = String(formData.get("title") ?? "").trim();
-    const category = String(formData.get("category") ?? "").trim();
-    const rawKind = String(formData.get("kind") ?? "image").trim();
-    const kind: MediaKind = rawKind === "video" ? "video" : "image";
-    const file = formData.get("file");
+    const { title, category, kind, url } = await parseCreatePayload(request);
 
-    if (!title || !category || !(file instanceof File)) {
+    if (!title || !category || !url) {
       return NextResponse.json(
         { error: "Preencha titulo, categoria e selecione um arquivo valido." },
         { status: 400 },
       );
     }
 
-    const upload = await uploadMediaFile(file, kind);
     const { data, error } = await supabaseAdmin
       .from("site_media")
       .insert([
         {
           title,
           category: encodeCategory(kind, category),
-          url: upload.publicUrl,
+          url,
         },
       ])
       .select("id, title, category, url")
       .single();
 
     if (error || !data) {
+      await removeMediaFile(url);
+
       return NextResponse.json(
         {
           error:

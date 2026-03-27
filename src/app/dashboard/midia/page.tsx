@@ -8,6 +8,7 @@ import PageHeader from "../_components/PageHeader";
 import Modal from "../_components/Modal";
 import styles from "./midia.module.css";
 import { MARKETING_IMAGE_SLOTS, VIDEO_CATEGORIES } from "@/lib/site-media";
+import { supabase } from "@/lib/supabase/client";
 
 type MediaKind = "image" | "video";
 
@@ -17,6 +18,12 @@ type MediaApiItem = {
   category: string;
   url: string;
   kind: MediaKind;
+};
+
+type SignedUploadResponse = {
+  path: string;
+  token: string;
+  publicUrl: string;
 };
 
 type ImageItem = {
@@ -69,12 +76,94 @@ function mapVideo(item: MediaApiItem): VideoItem {
 }
 
 async function getApiError(response: Response) {
-  try {
-    const payload = (await response.json()) as { error?: string };
-    return payload.error || "Falha ao processar a solicitacao.";
-  } catch {
-    return "Falha ao processar a solicitacao.";
+  const raw = (await response.text()).trim();
+
+  if (!raw) {
+    return `Falha ao processar a solicitacao (${response.status}).`;
   }
+
+  if (raw.startsWith("<")) {
+    return `Falha ao processar a solicitacao (${response.status}).`;
+  }
+
+  try {
+    const payload = JSON.parse(raw) as { error?: string };
+    return payload.error || `Falha ao processar a solicitacao (${response.status}).`;
+  } catch {
+    return raw;
+  }
+}
+
+async function uploadFileToStorage(file: File, kind: MediaKind) {
+  const signedUploadResponse = await fetch("/api/media/upload-url", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      fileName: file.name,
+      kind,
+    }),
+  });
+
+  if (!signedUploadResponse.ok) {
+    throw new Error(await getApiError(signedUploadResponse));
+  }
+
+  const { path, token, publicUrl } =
+    (await signedUploadResponse.json()) as SignedUploadResponse;
+  const { error } = await supabase.storage
+    .from("public_media")
+    .uploadToSignedUrl(path, token, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (error) {
+    throw new Error(`Nao foi possivel enviar o arquivo: ${error.message}`);
+  }
+
+  return publicUrl;
+}
+
+async function createMediaRecord(payload: {
+  title: string;
+  category: string;
+  kind: MediaKind;
+  url: string;
+}) {
+  const response = await fetch("/api/media", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getApiError(response));
+  }
+
+  return (await response.json()) as MediaApiItem;
+}
+
+async function replaceMediaRecord(
+  id: number,
+  payload: { kind: MediaKind; url: string },
+) {
+  const response = await fetch(`/api/media/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getApiError(response));
+  }
+
+  return (await response.json()) as MediaApiItem;
 }
 
 function ImageCard({
@@ -264,22 +353,16 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const formData = new FormData();
-      formData.set("title", imgForm.titulo.trim());
-      formData.set("category", imgForm.categoria);
-      formData.set("kind", "image");
-      formData.set("file", imgForm.file);
+      const publicUrl = await uploadFileToStorage(imgForm.file, "image");
+      const item = mapImage(
+        await createMediaRecord({
+          title: imgForm.titulo.trim(),
+          category: imgForm.categoria,
+          kind: "image",
+          url: publicUrl,
+        }),
+      );
 
-      const response = await fetch("/api/media", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(await getApiError(response));
-      }
-
-      const item = mapImage((await response.json()) as MediaApiItem);
       setImagens((prev) => [item, ...prev]);
       setAddImgOpen(false);
       setImgForm(BLANK_IMG);
@@ -324,20 +407,14 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const formData = new FormData();
-      formData.set("kind", "image");
-      formData.set("file", file);
+      const publicUrl = await uploadFileToStorage(file, "image");
+      const updatedItem = mapImage(
+        await replaceMediaRecord(id, {
+          kind: "image",
+          url: publicUrl,
+        }),
+      );
 
-      const response = await fetch(`/api/media/${id}`, {
-        method: "PATCH",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(await getApiError(response));
-      }
-
-      const updatedItem = mapImage((await response.json()) as MediaApiItem);
       setImagens((prev) =>
         prev.map((item) => (item.id === id ? updatedItem : item)),
       );
@@ -363,22 +440,16 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const formData = new FormData();
-      formData.set("title", vidForm.titulo.trim());
-      formData.set("category", vidForm.categoria);
-      formData.set("kind", "video");
-      formData.set("file", vidForm.file);
+      const publicUrl = await uploadFileToStorage(vidForm.file, "video");
+      const item = mapVideo(
+        await createMediaRecord({
+          title: vidForm.titulo.trim(),
+          category: vidForm.categoria,
+          kind: "video",
+          url: publicUrl,
+        }),
+      );
 
-      const response = await fetch("/api/media", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(await getApiError(response));
-      }
-
-      const item = mapVideo((await response.json()) as MediaApiItem);
       setVideos((prev) => [item, ...prev]);
       setAddVidOpen(false);
       setVidForm(BLANK_VID);
@@ -423,20 +494,14 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const formData = new FormData();
-      formData.set("kind", "video");
-      formData.set("file", file);
+      const publicUrl = await uploadFileToStorage(file, "video");
+      const updatedItem = mapVideo(
+        await replaceMediaRecord(id, {
+          kind: "video",
+          url: publicUrl,
+        }),
+      );
 
-      const response = await fetch(`/api/media/${id}`, {
-        method: "PATCH",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(await getApiError(response));
-      }
-
-      const updatedItem = mapVideo((await response.json()) as MediaApiItem);
       setVideos((prev) =>
         prev.map((item) => (item.id === id ? updatedItem : item)),
       );

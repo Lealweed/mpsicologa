@@ -8,6 +8,11 @@ import {
   uploadMediaFile,
 } from "../_utils";
 
+type UpdateMediaPayload = {
+  kind: MediaKind;
+  url: string;
+};
+
 async function getMediaRow(id: number) {
   const supabaseAdmin = getSupabaseAdmin();
   const { data, error } = await supabaseAdmin
@@ -21,6 +26,47 @@ async function getMediaRow(id: number) {
   }
 
   return data as SiteMediaRow | null;
+}
+
+async function parseUpdatePayload(
+  request: Request,
+  currentRow: SiteMediaRow,
+): Promise<UpdateMediaPayload> {
+  const contentType = request.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    const body = (await request.json()) as {
+      kind?: MediaKind;
+      url?: string;
+    };
+
+    return {
+      kind:
+        body.kind === "video" || currentRow.category.startsWith("video:")
+          ? "video"
+          : "image",
+      url: String(body.url ?? "").trim(),
+    };
+  }
+
+  const formData = await request.formData();
+  const rawKind = String(formData.get("kind") ?? "").trim();
+  const kind: MediaKind =
+    rawKind === "video" || currentRow.category.startsWith("video:")
+      ? "video"
+      : "image";
+  const file = formData.get("file");
+
+  if (!(file instanceof File)) {
+    return { kind, url: "" };
+  }
+
+  const upload = await uploadMediaFile(file, kind);
+
+  return {
+    kind,
+    url: upload.publicUrl,
+  };
 }
 
 export async function DELETE(
@@ -77,31 +123,26 @@ export async function PATCH(
       return NextResponse.json({ error: "Midia nao encontrada." }, { status: 404 });
     }
 
-    const formData = await request.formData();
-    const rawKind = String(formData.get("kind") ?? "").trim();
-    const kind: MediaKind =
-      rawKind === "video" || row.category.startsWith("video:")
-        ? "video"
-        : "image";
-    const file = formData.get("file");
+    const { url } = await parseUpdatePayload(request, row);
 
-    if (!(file instanceof File)) {
+    if (!url) {
       return NextResponse.json(
         { error: "Selecione um arquivo valido para substituir." },
         { status: 400 },
       );
     }
 
-    const upload = await uploadMediaFile(file, kind);
     const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin
       .from("site_media")
-      .update({ url: upload.publicUrl })
+      .update({ url })
       .eq("id", mediaId)
       .select("id, title, category, url")
       .single();
 
     if (error || !data) {
+      await removeMediaFile(url);
+
       throw new Error(
         error?.message ?? "Nao foi possivel atualizar a URL da midia.",
       );
