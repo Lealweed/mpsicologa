@@ -1,18 +1,11 @@
 import Link from "next/link";
 import styles from "./page.module.css";
-import { createClient } from "@supabase/supabase-js";
 import {
   MARKETING_IMAGE_CATEGORIES,
   MARKETING_IMAGE_SLOTS,
   type MarketingImageCategory,
-  isSupabaseConfigured,
 } from "@/lib/site-media";
-
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder";
-const supabaseEnabled = isSupabaseConfigured(supabaseUrl, supabaseAnonKey);
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 type MarketingImages = Record<MarketingImageCategory, string | null>;
 
@@ -25,16 +18,16 @@ function createEmptyMarketingImages(): MarketingImages {
 }
 
 async function getMarketingImages(): Promise<MarketingImages> {
-  if (!supabaseEnabled) {
-    return createEmptyMarketingImages();
-  }
-
   try {
-    const { data, error } = await supabase
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return createEmptyMarketingImages();
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+    const { data, error } = await supabaseAdmin
       .from("site_media")
-      .select("id, categoria, url")
-      .eq("type", "image")
-      .in("categoria", MARKETING_IMAGE_CATEGORIES)
+      .select("id, category, url")
+      .in("category", MARKETING_IMAGE_CATEGORIES)
       .order("id", { ascending: false });
 
     if (error || !data) {
@@ -44,7 +37,7 @@ async function getMarketingImages(): Promise<MarketingImages> {
     const images = createEmptyMarketingImages();
 
     for (const item of data) {
-      const category = item.categoria as MarketingImageCategory;
+      const category = item.category as MarketingImageCategory;
 
       if (category in images && !images[category]) {
         images[category] = item.url;

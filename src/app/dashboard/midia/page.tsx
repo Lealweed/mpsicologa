@@ -2,17 +2,22 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Plus, Trash2, RefreshCw, Play, ImageIcon, Video } from "lucide-react";
-import { supabase } from "../../../lib/supabase/client";
 import PageHeader from "../_components/PageHeader";
 import Modal from "../_components/Modal";
 import styles from "./midia.module.css";
-import {
-  MARKETING_IMAGE_SLOTS,
-  VIDEO_CATEGORIES,
-  isSupabaseConfigured,
-} from "@/lib/site-media";
+import { MARKETING_IMAGE_SLOTS, VIDEO_CATEGORIES } from "@/lib/site-media";
+
+type MediaKind = "image" | "video";
+
+type MediaApiItem = {
+  id: number;
+  title: string;
+  category: string;
+  url: string;
+  kind: MediaKind;
+};
 
 type ImageItem = {
   id: number;
@@ -26,14 +31,6 @@ type VideoItem = {
   titulo: string;
   categoria: string;
   thumb: string;
-};
-
-type SiteMediaRecord = {
-  id: number;
-  titulo: string;
-  categoria: string;
-  url: string;
-  type: "image" | "video";
 };
 
 type Tab = "imagens" | "videos";
@@ -52,52 +49,32 @@ type AddVideoForm = {
 
 const BLANK_IMG: AddImageForm = { titulo: "", categoria: "", file: null };
 const BLANK_VID: AddVideoForm = { titulo: "", categoria: "", file: null };
-const supabaseReady = isSupabaseConfigured(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-);
 
-function mapImage(record: SiteMediaRecord): ImageItem {
+function mapImage(item: MediaApiItem): ImageItem {
   return {
-    id: record.id,
-    titulo: record.titulo,
-    categoria: record.categoria,
-    url: record.url,
+    id: item.id,
+    titulo: item.title,
+    categoria: item.category,
+    url: item.url,
   };
 }
 
-function mapVideo(record: SiteMediaRecord): VideoItem {
+function mapVideo(item: MediaApiItem): VideoItem {
   return {
-    id: record.id,
-    titulo: record.titulo,
-    categoria: record.categoria,
-    thumb: record.url,
+    id: item.id,
+    titulo: item.title,
+    categoria: item.category,
+    thumb: item.url,
   };
 }
 
-function extractStoragePath(publicUrl: string) {
-  const marker = "/public_media/";
-  const markerIndex = publicUrl.indexOf(marker);
-
-  if (markerIndex === -1) {
-    return null;
+async function getApiError(response: Response) {
+  try {
+    const payload = (await response.json()) as { error?: string };
+    return payload.error || "Falha ao processar a solicitacao.";
+  } catch {
+    return "Falha ao processar a solicitacao.";
   }
-
-  return publicUrl.slice(markerIndex + marker.length);
-}
-
-async function uploadPublicMedia(file: File) {
-  const sanitizedName = file.name.replace(/\s+/g, "_");
-  const fileName = `${Date.now()}_${sanitizedName}`;
-  const { error } = await supabase.storage
-    .from("public_media")
-    .upload(fileName, file);
-
-  if (error) {
-    throw error;
-  }
-
-  return supabase.storage.from("public_media").getPublicUrl(fileName).data.publicUrl;
 }
 
 function ImageCard({
@@ -244,42 +221,42 @@ export default function MidiaPage() {
     image: imagens.find((img) => img.categoria === slot.category) ?? null,
   }));
 
-  async function loadMedia() {
-    if (!supabaseReady) {
-      setErrorMessage(
-        "Configure o Supabase para enviar imagens reais do seu computador pelo painel.",
-      );
-      return;
-    }
-
+  const loadMedia = useCallback(async () => {
     setLoading(true);
     setErrorMessage("");
 
-    const { data, error } = await supabase
-      .from("site_media")
-      .select("id, titulo, categoria, url, type")
-      .order("id", { ascending: false });
+    try {
+      const response = await fetch("/api/media", {
+        method: "GET",
+        cache: "no-store",
+      });
 
-    if (error) {
-      setErrorMessage("Nao foi possivel carregar a biblioteca de midia.");
+      if (!response.ok) {
+        throw new Error(await getApiError(response));
+      }
+
+      const media = (await response.json()) as MediaApiItem[];
+      setImagens(media.filter((item) => item.kind === "image").map(mapImage));
+      setVideos(media.filter((item) => item.kind === "video").map(mapVideo));
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel carregar a biblioteca de midia.",
+      );
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const media = (data ?? []) as SiteMediaRecord[];
-    setImagens(media.filter((item) => item.type === "image").map(mapImage));
-    setVideos(media.filter((item) => item.type === "video").map(mapVideo));
-    setLoading(false);
-  }
+  }, []);
 
   useEffect(() => {
     void loadMedia();
-  }, []);
+  }, [loadMedia]);
 
   async function handleAddImagem(event: React.FormEvent) {
     event.preventDefault();
 
-    if (!imgForm.file || !supabaseReady) {
+    if (!imgForm.file) {
       return;
     }
 
@@ -287,94 +264,89 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const url = await uploadPublicMedia(imgForm.file);
-      const { data, error } = await supabase
-        .from("site_media")
-        .insert([
-          {
-            titulo: imgForm.titulo.trim(),
-            categoria: imgForm.categoria,
-            url,
-            type: "image",
-          },
-        ])
-        .select("id, titulo, categoria, url")
-        .single();
+      const formData = new FormData();
+      formData.set("title", imgForm.titulo.trim());
+      formData.set("category", imgForm.categoria);
+      formData.set("kind", "image");
+      formData.set("file", imgForm.file);
 
-      if (error || !data) {
-        throw error ?? new Error("Falha ao salvar a imagem.");
+      const response = await fetch("/api/media", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(await getApiError(response));
       }
 
-      setImagens((prev) => [mapImage({ ...data, type: "image" }), ...prev]);
+      const item = mapImage((await response.json()) as MediaApiItem);
+      setImagens((prev) => [item, ...prev]);
       setAddImgOpen(false);
       setImgForm(BLANK_IMG);
-    } catch {
-      setErrorMessage("Nao foi possivel enviar a imagem selecionada.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel enviar a imagem selecionada.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
   async function handleDeleteImagem(id: number) {
-    const image = imagens.find((item) => item.id === id);
-
-    if (!image || !supabaseReady) {
-      return;
-    }
-
     setLoading(true);
     setErrorMessage("");
 
     try {
-      const { error } = await supabase.from("site_media").delete().eq("id", id);
+      const response = await fetch(`/api/media/${id}`, {
+        method: "DELETE",
+      });
 
-      if (error) {
-        throw error;
-      }
-
-      const storagePath = extractStoragePath(image.url);
-
-      if (storagePath) {
-        await supabase.storage.from("public_media").remove([storagePath]);
+      if (!response.ok) {
+        throw new Error(await getApiError(response));
       }
 
       setImagens((prev) => prev.filter((item) => item.id !== id));
-    } catch {
-      setErrorMessage("Nao foi possivel excluir essa imagem agora.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel excluir essa imagem agora.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
   async function handleReplaceImagem(id: number, file: File) {
-    const currentImage = imagens.find((item) => item.id === id);
-
-    if (!currentImage || !supabaseReady) {
-      return;
-    }
-
     setLoading(true);
     setErrorMessage("");
 
     try {
-      const url = await uploadPublicMedia(file);
-      const { error } = await supabase.from("site_media").update({ url }).eq("id", id);
+      const formData = new FormData();
+      formData.set("kind", "image");
+      formData.set("file", file);
 
-      if (error) {
-        throw error;
+      const response = await fetch(`/api/media/${id}`, {
+        method: "PATCH",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(await getApiError(response));
       }
 
-      const previousPath = extractStoragePath(currentImage.url);
-
-      if (previousPath) {
-        await supabase.storage.from("public_media").remove([previousPath]);
-      }
-
+      const updatedItem = mapImage((await response.json()) as MediaApiItem);
       setImagens((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, url } : item)),
+        prev.map((item) => (item.id === id ? updatedItem : item)),
       );
-    } catch {
-      setErrorMessage("Nao foi possivel substituir a imagem selecionada.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel substituir a imagem selecionada.",
+      );
     } finally {
       setLoading(false);
     }
@@ -383,7 +355,7 @@ export default function MidiaPage() {
   async function handleAddVideo(event: React.FormEvent) {
     event.preventDefault();
 
-    if (!vidForm.file || !supabaseReady) {
+    if (!vidForm.file) {
       return;
     }
 
@@ -391,94 +363,89 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const url = await uploadPublicMedia(vidForm.file);
-      const { data, error } = await supabase
-        .from("site_media")
-        .insert([
-          {
-            titulo: vidForm.titulo.trim(),
-            categoria: vidForm.categoria,
-            url,
-            type: "video",
-          },
-        ])
-        .select("id, titulo, categoria, url")
-        .single();
+      const formData = new FormData();
+      formData.set("title", vidForm.titulo.trim());
+      formData.set("category", vidForm.categoria);
+      formData.set("kind", "video");
+      formData.set("file", vidForm.file);
 
-      if (error || !data) {
-        throw error ?? new Error("Falha ao salvar o video.");
+      const response = await fetch("/api/media", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(await getApiError(response));
       }
 
-      setVideos((prev) => [mapVideo({ ...data, type: "video" }), ...prev]);
+      const item = mapVideo((await response.json()) as MediaApiItem);
+      setVideos((prev) => [item, ...prev]);
       setAddVidOpen(false);
       setVidForm(BLANK_VID);
-    } catch {
-      setErrorMessage("Nao foi possivel enviar o video selecionado.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel enviar o video selecionado.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
   async function handleDeleteVideo(id: number) {
-    const currentVideo = videos.find((item) => item.id === id);
-
-    if (!currentVideo || !supabaseReady) {
-      return;
-    }
-
     setLoading(true);
     setErrorMessage("");
 
     try {
-      const { error } = await supabase.from("site_media").delete().eq("id", id);
+      const response = await fetch(`/api/media/${id}`, {
+        method: "DELETE",
+      });
 
-      if (error) {
-        throw error;
-      }
-
-      const storagePath = extractStoragePath(currentVideo.thumb);
-
-      if (storagePath) {
-        await supabase.storage.from("public_media").remove([storagePath]);
+      if (!response.ok) {
+        throw new Error(await getApiError(response));
       }
 
       setVideos((prev) => prev.filter((item) => item.id !== id));
-    } catch {
-      setErrorMessage("Nao foi possivel excluir esse video agora.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel excluir esse video agora.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
   async function handleReplaceVideo(id: number, file: File) {
-    const currentVideo = videos.find((item) => item.id === id);
-
-    if (!currentVideo || !supabaseReady) {
-      return;
-    }
-
     setLoading(true);
     setErrorMessage("");
 
     try {
-      const url = await uploadPublicMedia(file);
-      const { error } = await supabase.from("site_media").update({ url }).eq("id", id);
+      const formData = new FormData();
+      formData.set("kind", "video");
+      formData.set("file", file);
 
-      if (error) {
-        throw error;
+      const response = await fetch(`/api/media/${id}`, {
+        method: "PATCH",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(await getApiError(response));
       }
 
-      const previousPath = extractStoragePath(currentVideo.thumb);
-
-      if (previousPath) {
-        await supabase.storage.from("public_media").remove([previousPath]);
-      }
-
+      const updatedItem = mapVideo((await response.json()) as MediaApiItem);
       setVideos((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, thumb: url } : item)),
+        prev.map((item) => (item.id === id ? updatedItem : item)),
       );
-    } catch {
-      setErrorMessage("Nao foi possivel substituir o video selecionado.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel substituir o video selecionado.",
+      );
     } finally {
       setLoading(false);
     }
@@ -489,7 +456,7 @@ export default function MidiaPage() {
       type="button"
       className={styles.newBtn}
       onClick={() => (tab === "imagens" ? setAddImgOpen(true) : setAddVidOpen(true))}
-      disabled={!supabaseReady || loading}
+      disabled={loading}
     >
       <Plus size={15} />
       {loading
@@ -521,7 +488,7 @@ export default function MidiaPage() {
             type="button"
             className={styles.secondaryAction}
             onClick={() => void loadMedia()}
-            disabled={!supabaseReady || loading}
+            disabled={loading}
           >
             <RefreshCw size={15} />
             Atualizar
@@ -602,9 +569,7 @@ export default function MidiaPage() {
       {tab === "videos" && (
         <div className={styles.grid}>
           {videos.length === 0 ? (
-            <div className={styles.emptyState}>
-              Nenhum video cadastrado ainda.
-            </div>
+            <div className={styles.emptyState}>Nenhum video cadastrado ainda.</div>
           ) : (
             videos.map((vid) => (
               <VideoCard
