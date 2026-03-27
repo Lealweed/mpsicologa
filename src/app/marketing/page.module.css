@@ -235,6 +235,44 @@
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.4);
 }
 
+.imagePlaceholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 28px;
+  background:
+    linear-gradient(135deg, rgba(248, 243, 238, 0.94), rgba(235, 224, 217, 0.92));
+  border: 1.5px dashed rgba(143, 108, 79, 0.28);
+}
+
+.imagePlaceholderEyebrow {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(157, 114, 128, 0.12);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.imagePlaceholderTitle {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 28px;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.imagePlaceholderText {
+  max-width: 320px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
 .heroCredCard {
   position: absolute;
   bottom: 24px;

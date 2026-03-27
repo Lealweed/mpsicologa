@@ -1,5 +1,90 @@
 import Link from "next/link";
 import styles from "./page.module.css";
+import { createClient } from "@supabase/supabase-js";
+import {
+  MARKETING_IMAGE_CATEGORIES,
+  MARKETING_IMAGE_SLOTS,
+  type MarketingImageCategory,
+  isSupabaseConfigured,
+} from "@/lib/site-media";
+
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder";
+const supabaseEnabled = isSupabaseConfigured(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+type MarketingImages = Record<MarketingImageCategory, string | null>;
+
+function createEmptyMarketingImages(): MarketingImages {
+  return {
+    Hero: null,
+    Sobre: null,
+    Empresas: null,
+  };
+}
+
+async function getMarketingImages(): Promise<MarketingImages> {
+  if (!supabaseEnabled) {
+    return createEmptyMarketingImages();
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("site_media")
+      .select("id, categoria, url")
+      .eq("type", "image")
+      .in("categoria", MARKETING_IMAGE_CATEGORIES)
+      .order("id", { ascending: false });
+
+    if (error || !data) {
+      return createEmptyMarketingImages();
+    }
+
+    const images = createEmptyMarketingImages();
+
+    for (const item of data) {
+      const category = item.categoria as MarketingImageCategory;
+
+      if (category in images && !images[category]) {
+        images[category] = item.url;
+      }
+    }
+
+    return images;
+  } catch {
+    return createEmptyMarketingImages();
+  }
+}
+
+function MarketingImage({
+  category,
+  src,
+  alt,
+  className,
+}: {
+  category: MarketingImageCategory;
+  src: string | null;
+  alt: string;
+  className: string;
+}) {
+  const slot = MARKETING_IMAGE_SLOTS.find((entry) => entry.category === category);
+
+  if (src) {
+    /* eslint-disable-next-line @next/next/no-img-element */
+    return <img src={src} alt={alt} className={className} />;
+  }
+
+  return (
+    <div className={`${className} ${styles.imagePlaceholder}`}>
+      <span className={styles.imagePlaceholderEyebrow}>Foto real pendente</span>
+      <strong className={styles.imagePlaceholderTitle}>{slot?.label ?? category}</strong>
+      <span className={styles.imagePlaceholderText}>
+        Envie sua imagem em Dashboard &gt; Midia usando a categoria {category}.
+      </span>
+    </div>
+  );
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 // TODO: Substitua pelo número real de WhatsApp (somente dígitos com DDI)
@@ -60,7 +145,7 @@ function IconPlay() {
 }
 
 // ── Hero ──────────────────────────────────────────────────────────────────────
-function HeroSection() {
+function HeroSection({ heroImg }: { heroImg: string | null }) {
   return (
     <section className={styles.hero}>
       <div className={styles.heroGlow} aria-hidden />
@@ -96,10 +181,10 @@ function HeroSection() {
         </div>
 
         <div className={styles.heroImageWrap}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://images.pexels.com/photos/7176293/pexels-photo-7176293.jpeg?auto=compress&cs=tinysrgb&w=900"
-            alt="Sessão de terapia — psicóloga em atendimento online. Foto: SHVETS production on Pexels"
+          <MarketingImage
+            category="Hero"
+            src={heroImg}
+            alt="Foto principal da psicologa em atendimento"
             className={styles.heroImage}
           />
           <div className={styles.heroCredCard}>
@@ -137,7 +222,7 @@ function StatsSection() {
 }
 
 // ── About ─────────────────────────────────────────────────────────────────────
-function AboutSection() {
+function AboutSection({ aboutImg }: { aboutImg: string | null }) {
   return (
     <section id="sobre" className={styles.about}>
       <div className={styles.aboutInner}>
@@ -154,9 +239,9 @@ function AboutSection() {
             diárias influencia diretamente o nosso emocional e comportamentos.
           </p>
           <blockquote className={styles.aboutBioHighlight}>
-            "Suas preocupações e objetivos imediatos são meu principal interesse. Vejo a
+            &ldquo;Suas preocupações e objetivos imediatos são meu principal interesse. Vejo a
             terapia como um processo de autodescoberta, autocompreensão e alcance de um
-            estilo de vida mais gratificante."
+            estilo de vida mais gratificante.&rdquo;
           </blockquote>
           <p className={styles.aboutBio}>
             Ofereço uma abordagem pessoal e atenciosa que pode ajudar você a colocar sua
@@ -186,10 +271,10 @@ function AboutSection() {
         </div>
 
         <div className={styles.aboutImageWrap}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://images.pexels.com/photos/7579119/pexels-photo-7579119.jpeg?auto=compress&cs=tinysrgb&w=800"
-            alt="Mayara Rocha, psicóloga clínica — sessão de atendimento. Foto: Antoni Shkraba Studio on Pexels"
+          <MarketingImage
+            category="Sobre"
+            src={aboutImg}
+            alt="Foto da psicologa na secao Sobre"
             className={styles.aboutImage}
           />
           <div className={styles.aboutBadge}>
@@ -337,7 +422,11 @@ function VideosSection() {
 }
 
 // ── Corporate ─────────────────────────────────────────────────────────────────
-function CorporateSection() {
+function CorporateSection({
+  corporateImg,
+}: {
+  corporateImg: string | null;
+}) {
   const items = [
     "Sessões individuais para colaboradores",
     "Grupos terapêuticos e workshops",
@@ -380,10 +469,10 @@ function CorporateSection() {
         </div>
 
         <div className={styles.corporateImageWrap}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=900"
-            alt="Equipe corporativa em sessão de bem-estar. Foto: fauxels on Pexels"
+          <MarketingImage
+            category="Empresas"
+            src={corporateImg}
+            alt="Foto da secao de atendimento corporativo"
             className={styles.corporateImage}
           />
         </div>
@@ -506,10 +595,10 @@ function Footer() {
         </div>
 
         <nav className={styles.footerNav} aria-label="Links do rodapé">
-          <a href="/#sobre" className={styles.footerNavLink}>Sobre</a>
-          <a href="/#servicos" className={styles.footerNavLink}>Serviços</a>
-          <a href="/#empresas" className={styles.footerNavLink}>Empresas</a>
-          <a href="/#contato" className={styles.footerNavLink}>Contato</a>
+          <Link href="/#sobre" className={styles.footerNavLink}>Sobre</Link>
+          <Link href="/#servicos" className={styles.footerNavLink}>Serviços</Link>
+          <Link href="/#empresas" className={styles.footerNavLink}>Empresas</Link>
+          <Link href="/#contato" className={styles.footerNavLink}>Contato</Link>
           <a href={INSTAGRAM_HREF} target="_blank" rel="noopener noreferrer" className={styles.footerNavLink}>Instagram</a>
           <Link href="/auth" className={styles.footerNavLink}>Área do paciente</Link>
         </nav>
@@ -523,15 +612,16 @@ function Footer() {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
-export default function MarketingHome() {
+export default async function MarketingHome() {
+  const images = await getMarketingImages();
   return (
     <main>
-      <HeroSection />
+      <HeroSection heroImg={images.Hero} />
       <StatsSection />
-      <AboutSection />
+      <AboutSection aboutImg={images.Sobre} />
       <ServicesSection />
       <VideosSection />
-      <CorporateSection />
+      <CorporateSection corporateImg={images.Empresas} />
       <TestimonialsSection />
       <ContactSection />
       <Footer />

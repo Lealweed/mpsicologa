@@ -18,6 +18,145 @@
 
 .newBtn:hover { background: var(--primary-dark); }
 
+.newBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.guideCard,
+.noticeCard {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+}
+
+.guideCard {
+  padding: 1.25rem;
+}
+
+.noticeCard {
+  padding: 0.9rem 1rem;
+  color: #8c4f40;
+  background: #fff8f6;
+}
+
+.guideHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.guideTitle {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+  color: var(--foreground);
+}
+
+.guideText {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 58rem;
+}
+
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  border-radius: 10px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.secondaryAction:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.guideGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.guideItem {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+  background: var(--surface);
+}
+
+.guideItemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.guideItemTitle {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.guideItemCategory {
+  display: inline-flex;
+  margin-bottom: 0.6rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.guideItemText,
+.guideItemCurrent {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 0.83rem;
+}
+
+.guideItemCurrent {
+  margin-top: 0.7rem;
+  font-weight: 600;
+}
+
+.guideStatus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.guideStatusReady {
+  background: #e6f4ec;
+  color: #2f7a48;
+}
+
+.guideStatusPending {
+  background: #f7ede7;
+  color: #9a6a57;
+}
+
 /* ── Tabs ── */
 .tabs {
   display: flex;
@@ -104,6 +243,18 @@
 }
 
 .mediaCard:hover .mediaImg { transform: scale(1.03); }
+
+.activeBadge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(34, 30, 30, 0.78);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
 
 /* Overlay with action buttons (visible on hover) */
 .mediaOverlay {
@@ -209,6 +360,14 @@
 
 .formStack { display: flex; flex-direction: column; gap: 1rem; }
 
+.fieldHint {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
 .fileRow { display: flex; align-items: center; gap: 0.5rem; }
 
 .fileBtn {
@@ -267,3 +426,25 @@
 }
 
 .btnSecondary:hover { background: var(--primary-light); }
+
+.emptyState {
+  grid-column: 1 / -1;
+  background: #fff;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.25rem;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.7;
+}
+
+@media (max-width: 720px) {
+  .guideHeader {
+    flex-direction: column;
+  }
+
+  .secondaryAction {
+    width: 100%;
+    justify-content: center;
+  }
+}

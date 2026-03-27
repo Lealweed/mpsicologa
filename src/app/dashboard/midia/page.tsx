@@ -1,13 +1,20 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+/* eslint-disable @next/next/no-img-element */
+
+import React, { useEffect, useRef, useState } from "react";
 import { Plus, Trash2, RefreshCw, Play, ImageIcon, Video } from "lucide-react";
+import { supabase } from "../../../lib/supabase/client";
 import PageHeader from "../_components/PageHeader";
 import Modal from "../_components/Modal";
 import styles from "./midia.module.css";
+import {
+  MARKETING_IMAGE_SLOTS,
+  VIDEO_CATEGORIES,
+  isSupabaseConfigured,
+} from "@/lib/site-media";
 
-/* ── Types ── */
-type Imagem = {
+type ImageItem = {
   id: number;
   titulo: string;
   categoria: string;
@@ -19,35 +26,102 @@ type VideoItem = {
   titulo: string;
   categoria: string;
   thumb: string;
-  duracao: string;
+};
+
+type SiteMediaRecord = {
+  id: number;
+  titulo: string;
+  categoria: string;
+  url: string;
+  type: "image" | "video";
 };
 
 type Tab = "imagens" | "videos";
 
-type AddImageForm = { titulo: string; categoria: string; file: File | null };
-type AddVideoForm = { titulo: string; categoria: string; file: File | null };
+type AddImageForm = {
+  titulo: string;
+  categoria: string;
+  file: File | null;
+};
 
-/* ── Mock data ── */
-const INITIAL_IMAGENS: Imagem[] = [];
+type AddVideoForm = {
+  titulo: string;
+  categoria: string;
+  file: File | null;
+};
 
-const INITIAL_VIDEOS: VideoItem[] = [];
+const BLANK_IMG: AddImageForm = { titulo: "", categoria: "", file: null };
+const BLANK_VID: AddVideoForm = { titulo: "", categoria: "", file: null };
+const supabaseReady = isSupabaseConfigured(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+);
 
-const BLANK_IMG: AddImageForm  = { titulo: "", categoria: "", file: null };
-const BLANK_VID: AddVideoForm  = { titulo: "", categoria: "", file: null };
+function mapImage(record: SiteMediaRecord): ImageItem {
+  return {
+    id: record.id,
+    titulo: record.titulo,
+    categoria: record.categoria,
+    url: record.url,
+  };
+}
 
-/* ── Image card ── */
-function ImageCard({ img, onDelete, onReplace }: {
-  img: Imagem;
+function mapVideo(record: SiteMediaRecord): VideoItem {
+  return {
+    id: record.id,
+    titulo: record.titulo,
+    categoria: record.categoria,
+    thumb: record.url,
+  };
+}
+
+function extractStoragePath(publicUrl: string) {
+  const marker = "/public_media/";
+  const markerIndex = publicUrl.indexOf(marker);
+
+  if (markerIndex === -1) {
+    return null;
+  }
+
+  return publicUrl.slice(markerIndex + marker.length);
+}
+
+async function uploadPublicMedia(file: File) {
+  const sanitizedName = file.name.replace(/\s+/g, "_");
+  const fileName = `${Date.now()}_${sanitizedName}`;
+  const { error } = await supabase.storage
+    .from("public_media")
+    .upload(fileName, file);
+
+  if (error) {
+    throw error;
+  }
+
+  return supabase.storage.from("public_media").getPublicUrl(fileName).data.publicUrl;
+}
+
+function ImageCard({
+  img,
+  active,
+  onDelete,
+  onReplace,
+}: {
+  img: ImageItem;
+  active: boolean;
   onDelete: (id: number) => void;
-  onReplace: (id: number, url: string) => void;
+  onReplace: (id: number, file: File) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    onReplace(img.id, url);
+  function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    onReplace(img.id, file);
+    event.target.value = "";
   }
 
   return (
@@ -55,13 +129,24 @@ function ImageCard({ img, onDelete, onReplace }: {
       <div className={styles.mediaThumb}>
         <img src={img.url} alt={img.titulo} className={styles.mediaImg} />
         <div className={styles.mediaOverlay}>
-          <button className={styles.overlayBtn} onClick={() => inputRef.current?.click()} title="Substituir">
+          <button
+            type="button"
+            className={styles.overlayBtn}
+            onClick={() => inputRef.current?.click()}
+            title="Substituir"
+          >
             <RefreshCw size={16} />
           </button>
-          <button className={styles.overlayBtnDanger} onClick={() => onDelete(img.id)} title="Excluir">
+          <button
+            type="button"
+            className={styles.overlayBtnDanger}
+            onClick={() => onDelete(img.id)}
+            title="Excluir"
+          >
             <Trash2 size={16} />
           </button>
         </div>
+        {active ? <span className={styles.activeBadge}>Ativa no site</span> : null}
       </div>
       <input
         ref={inputRef}
@@ -78,19 +163,26 @@ function ImageCard({ img, onDelete, onReplace }: {
   );
 }
 
-/* ── Video card ── */
-function VideoCard({ vid, onDelete, onReplace }: {
+function VideoCard({
+  vid,
+  onDelete,
+  onReplace,
+}: {
   vid: VideoItem;
   onDelete: (id: number) => void;
-  onReplace: (id: number, url: string) => void;
+  onReplace: (id: number, file: File) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    onReplace(vid.id, url);
+  function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    onReplace(vid.id, file);
+    event.target.value = "";
   }
 
   return (
@@ -100,12 +192,21 @@ function VideoCard({ vid, onDelete, onReplace }: {
         <div className={styles.playOverlay}>
           <Play size={28} fill="#fff" color="#fff" />
         </div>
-        <span className={styles.duracao}>{vid.duracao}</span>
         <div className={styles.mediaOverlay}>
-          <button className={styles.overlayBtn} onClick={() => inputRef.current?.click()} title="Substituir">
+          <button
+            type="button"
+            className={styles.overlayBtn}
+            onClick={() => inputRef.current?.click()}
+            title="Substituir"
+          >
             <RefreshCw size={16} />
           </button>
-          <button className={styles.overlayBtnDanger} onClick={() => onDelete(vid.id)} title="Excluir">
+          <button
+            type="button"
+            className={styles.overlayBtnDanger}
+            onClick={() => onDelete(vid.id)}
+            title="Excluir"
+          >
             <Trash2 size={16} />
           </button>
         </div>
@@ -125,11 +226,12 @@ function VideoCard({ vid, onDelete, onReplace }: {
   );
 }
 
-/* ── Page ── */
 export default function MidiaPage() {
   const [tab, setTab] = useState<Tab>("imagens");
-  const [imagens, setImagens] = useState<Imagem[]>(INITIAL_IMAGENS);
-  const [videos, setVideos] = useState<VideoItem[]>(INITIAL_VIDEOS);
+  const [imagens, setImagens] = useState<ImageItem[]>([]);
+  const [videos, setVideos] = useState<VideoItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [addImgOpen, setAddImgOpen] = useState(false);
   const [addVidOpen, setAddVidOpen] = useState(false);
   const [imgForm, setImgForm] = useState<AddImageForm>(BLANK_IMG);
@@ -137,67 +239,323 @@ export default function MidiaPage() {
   const imgInputRef = useRef<HTMLInputElement>(null);
   const vidInputRef = useRef<HTMLInputElement>(null);
 
-  /* Image actions */
-  function handleAddImagem(e: React.FormEvent) {
-    e.preventDefault();
-    const url = imgForm.file
-      ? URL.createObjectURL(imgForm.file)
-      : `https://picsum.photos/600/450?random=${Date.now()}`;
-    setImagens((prev) => [
-      ...prev,
-      { id: prev.length + 1, titulo: imgForm.titulo, categoria: imgForm.categoria, url },
-    ]);
-    setAddImgOpen(false);
-    setImgForm(BLANK_IMG);
+  const activeImages = MARKETING_IMAGE_SLOTS.map((slot) => ({
+    slot,
+    image: imagens.find((img) => img.categoria === slot.category) ?? null,
+  }));
+
+  async function loadMedia() {
+    if (!supabaseReady) {
+      setErrorMessage(
+        "Configure o Supabase para enviar imagens reais do seu computador pelo painel.",
+      );
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    const { data, error } = await supabase
+      .from("site_media")
+      .select("id, titulo, categoria, url, type")
+      .order("id", { ascending: false });
+
+    if (error) {
+      setErrorMessage("Nao foi possivel carregar a biblioteca de midia.");
+      setLoading(false);
+      return;
+    }
+
+    const media = (data ?? []) as SiteMediaRecord[];
+    setImagens(media.filter((item) => item.type === "image").map(mapImage));
+    setVideos(media.filter((item) => item.type === "video").map(mapVideo));
+    setLoading(false);
   }
 
-  function handleDeleteImagem(id: number) {
-    setImagens((prev) => prev.filter((i) => i.id !== id));
+  useEffect(() => {
+    void loadMedia();
+  }, []);
+
+  async function handleAddImagem(event: React.FormEvent) {
+    event.preventDefault();
+
+    if (!imgForm.file || !supabaseReady) {
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const url = await uploadPublicMedia(imgForm.file);
+      const { data, error } = await supabase
+        .from("site_media")
+        .insert([
+          {
+            titulo: imgForm.titulo.trim(),
+            categoria: imgForm.categoria,
+            url,
+            type: "image",
+          },
+        ])
+        .select("id, titulo, categoria, url")
+        .single();
+
+      if (error || !data) {
+        throw error ?? new Error("Falha ao salvar a imagem.");
+      }
+
+      setImagens((prev) => [mapImage({ ...data, type: "image" }), ...prev]);
+      setAddImgOpen(false);
+      setImgForm(BLANK_IMG);
+    } catch {
+      setErrorMessage("Nao foi possivel enviar a imagem selecionada.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleReplaceImagem(id: number, url: string) {
-    setImagens((prev) => prev.map((i) => (i.id === id ? { ...i, url } : i)));
+  async function handleDeleteImagem(id: number) {
+    const image = imagens.find((item) => item.id === id);
+
+    if (!image || !supabaseReady) {
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const { error } = await supabase.from("site_media").delete().eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+
+      const storagePath = extractStoragePath(image.url);
+
+      if (storagePath) {
+        await supabase.storage.from("public_media").remove([storagePath]);
+      }
+
+      setImagens((prev) => prev.filter((item) => item.id !== id));
+    } catch {
+      setErrorMessage("Nao foi possivel excluir essa imagem agora.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  /* Video actions */
-  function handleAddVideo(e: React.FormEvent) {
-    e.preventDefault();
-    const thumb = vidForm.file
-      ? URL.createObjectURL(vidForm.file)
-      : `https://picsum.photos/640/360?random=${Date.now()}`;
-    setVideos((prev) => [
-      ...prev,
-      { id: prev.length + 1, titulo: vidForm.titulo, categoria: vidForm.categoria, thumb, duracao: "0:00" },
-    ]);
-    setAddVidOpen(false);
-    setVidForm(BLANK_VID);
+  async function handleReplaceImagem(id: number, file: File) {
+    const currentImage = imagens.find((item) => item.id === id);
+
+    if (!currentImage || !supabaseReady) {
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const url = await uploadPublicMedia(file);
+      const { error } = await supabase.from("site_media").update({ url }).eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+
+      const previousPath = extractStoragePath(currentImage.url);
+
+      if (previousPath) {
+        await supabase.storage.from("public_media").remove([previousPath]);
+      }
+
+      setImagens((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, url } : item)),
+      );
+    } catch {
+      setErrorMessage("Nao foi possivel substituir a imagem selecionada.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleDeleteVideo(id: number) {
-    setVideos((prev) => prev.filter((v) => v.id !== id));
+  async function handleAddVideo(event: React.FormEvent) {
+    event.preventDefault();
+
+    if (!vidForm.file || !supabaseReady) {
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const url = await uploadPublicMedia(vidForm.file);
+      const { data, error } = await supabase
+        .from("site_media")
+        .insert([
+          {
+            titulo: vidForm.titulo.trim(),
+            categoria: vidForm.categoria,
+            url,
+            type: "video",
+          },
+        ])
+        .select("id, titulo, categoria, url")
+        .single();
+
+      if (error || !data) {
+        throw error ?? new Error("Falha ao salvar o video.");
+      }
+
+      setVideos((prev) => [mapVideo({ ...data, type: "video" }), ...prev]);
+      setAddVidOpen(false);
+      setVidForm(BLANK_VID);
+    } catch {
+      setErrorMessage("Nao foi possivel enviar o video selecionado.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleReplaceVideo(id: number, url: string) {
-    setVideos((prev) => prev.map((v) => (v.id === id ? { ...v, thumb: url } : v)));
+  async function handleDeleteVideo(id: number) {
+    const currentVideo = videos.find((item) => item.id === id);
+
+    if (!currentVideo || !supabaseReady) {
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const { error } = await supabase.from("site_media").delete().eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+
+      const storagePath = extractStoragePath(currentVideo.thumb);
+
+      if (storagePath) {
+        await supabase.storage.from("public_media").remove([storagePath]);
+      }
+
+      setVideos((prev) => prev.filter((item) => item.id !== id));
+    } catch {
+      setErrorMessage("Nao foi possivel excluir esse video agora.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleReplaceVideo(id: number, file: File) {
+    const currentVideo = videos.find((item) => item.id === id);
+
+    if (!currentVideo || !supabaseReady) {
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const url = await uploadPublicMedia(file);
+      const { error } = await supabase.from("site_media").update({ url }).eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+
+      const previousPath = extractStoragePath(currentVideo.thumb);
+
+      if (previousPath) {
+        await supabase.storage.from("public_media").remove([previousPath]);
+      }
+
+      setVideos((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, thumb: url } : item)),
+      );
+    } catch {
+      setErrorMessage("Nao foi possivel substituir o video selecionado.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const addBtn = (
     <button
+      type="button"
       className={styles.newBtn}
       onClick={() => (tab === "imagens" ? setAddImgOpen(true) : setAddVidOpen(true))}
+      disabled={!supabaseReady || loading}
     >
       <Plus size={15} />
-      {tab === "imagens" ? "Adicionar Imagem" : "Adicionar Vídeo"}
+      {loading
+        ? "Processando..."
+        : tab === "imagens"
+          ? "Adicionar Imagem"
+          : "Adicionar Video"}
     </button>
   );
 
   return (
     <div>
-      <PageHeader title="Mídia" subtitle="Gerencie as imagens e vídeos do sistema" actions={addBtn} />
+      <PageHeader
+        title="Midia"
+        subtitle="Envie imagens reais do seu computador e troque o que aparece no site."
+        actions={addBtn}
+      />
 
-      {/* Tab switcher */}
+      <section className={styles.guideCard}>
+        <div className={styles.guideHeader}>
+          <div>
+            <h2 className={styles.guideTitle}>Fotos reais da pagina inicial</h2>
+            <p className={styles.guideText}>
+              Para remover os mockups, envie suas fotos usando as categorias abaixo.
+              A imagem mais recente de cada categoria e a que aparece na home.
+            </p>
+          </div>
+          <button
+            type="button"
+            className={styles.secondaryAction}
+            onClick={() => void loadMedia()}
+            disabled={!supabaseReady || loading}
+          >
+            <RefreshCw size={15} />
+            Atualizar
+          </button>
+        </div>
+
+        <div className={styles.guideGrid}>
+          {activeImages.map(({ slot, image }) => (
+            <article key={slot.category} className={styles.guideItem}>
+              <div className={styles.guideItemHeader}>
+                <span className={styles.guideItemTitle}>{slot.label}</span>
+                <span
+                  className={`${styles.guideStatus} ${
+                    image ? styles.guideStatusReady : styles.guideStatusPending
+                  }`}
+                >
+                  {image ? "Configurada" : "Pendente"}
+                </span>
+              </div>
+              <span className={styles.guideItemCategory}>{slot.category}</span>
+              <p className={styles.guideItemText}>{slot.description}</p>
+              <p className={styles.guideItemCurrent}>
+                {image ? `Ativa agora: ${image.titulo}` : "Nenhuma foto real enviada ainda."}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {errorMessage ? <div className={styles.noticeCard}>{errorMessage}</div> : null}
+
       <div className={styles.tabs}>
         <button
+          type="button"
           className={`${styles.tab} ${tab === "imagens" ? styles.tabActive : ""}`}
           onClick={() => setTab("imagens")}
         >
@@ -206,58 +564,80 @@ export default function MidiaPage() {
           <span className={styles.tabCount}>{imagens.length}</span>
         </button>
         <button
+          type="button"
           className={`${styles.tab} ${tab === "videos" ? styles.tabActive : ""}`}
           onClick={() => setTab("videos")}
         >
           <Video size={15} />
-          Vídeos
+          Videos
           <span className={styles.tabCount}>{videos.length}</span>
         </button>
       </div>
 
-      {/* Content */}
       {tab === "imagens" && (
         <div className={styles.grid}>
-          {imagens.map((img) => (
-            <ImageCard
-              key={img.id}
-              img={img}
-              onDelete={handleDeleteImagem}
-              onReplace={handleReplaceImagem}
-            />
-          ))}
+          {imagens.length === 0 ? (
+            <div className={styles.emptyState}>
+              Nenhuma imagem cadastrada ainda. Use o botao Adicionar Imagem para subir
+              suas fotos reais.
+            </div>
+          ) : (
+            imagens.map((img) => (
+              <ImageCard
+                key={img.id}
+                img={img}
+                active={Boolean(
+                  activeImages.find(
+                    ({ slot, image }) => slot.category === img.categoria && image?.id === img.id,
+                  ),
+                )}
+                onDelete={handleDeleteImagem}
+                onReplace={handleReplaceImagem}
+              />
+            ))
+          )}
         </div>
       )}
 
       {tab === "videos" && (
         <div className={styles.grid}>
-          {videos.map((vid) => (
-            <VideoCard
-              key={vid.id}
-              vid={vid}
-              onDelete={handleDeleteVideo}
-              onReplace={handleReplaceVideo}
-            />
-          ))}
+          {videos.length === 0 ? (
+            <div className={styles.emptyState}>
+              Nenhum video cadastrado ainda.
+            </div>
+          ) : (
+            videos.map((vid) => (
+              <VideoCard
+                key={vid.id}
+                vid={vid}
+                onDelete={handleDeleteVideo}
+                onReplace={handleReplaceVideo}
+              />
+            ))
+          )}
         </div>
       )}
 
-      {/* Modal: Adicionar Imagem */}
       <Modal
         isOpen={addImgOpen}
-        onClose={() => { setAddImgOpen(false); setImgForm(BLANK_IMG); }}
+        onClose={() => {
+          setAddImgOpen(false);
+          setImgForm(BLANK_IMG);
+        }}
         title="Adicionar Imagem"
         size="sm"
       >
         <form onSubmit={handleAddImagem}>
           <div className={styles.formStack}>
             <label>
-              Título
+              Titulo
               <input
                 type="text"
                 value={imgForm.titulo}
-                onChange={(e) => setImgForm((f) => ({ ...f, titulo: e.target.value }))}
-                placeholder="Ex: Banner principal"
+                onChange={(event) =>
+                  setImgForm((current) => ({ ...current, titulo: event.target.value }))
+                }
+                placeholder="Ex: Foto principal da home"
                 required
               />
             </label>
@@ -265,16 +645,21 @@ export default function MidiaPage() {
               Categoria
               <select
                 value={imgForm.categoria}
-                onChange={(e) => setImgForm((f) => ({ ...f, categoria: e.target.value }))}
+                onChange={(event) =>
+                  setImgForm((current) => ({ ...current, categoria: event.target.value }))
+                }
                 required
               >
                 <option value="">Selecionar...</option>
-                <option>Perfil</option>
-                <option>Marketing</option>
-                <option>Serviços</option>
-                <option>Sobre</option>
-                <option>Depoimentos</option>
+                {MARKETING_IMAGE_SLOTS.map((slot) => (
+                  <option key={slot.category} value={slot.category}>
+                    {slot.category} - {slot.label}
+                  </option>
+                ))}
               </select>
+              <span className={styles.fieldHint}>
+                Hero = topo da pagina, Sobre = apresentacao, Empresas = area corporativa.
+              </span>
             </label>
             <label>
               Arquivo
@@ -292,39 +677,54 @@ export default function MidiaPage() {
                   type="file"
                   accept="image/*"
                   className={styles.hiddenInput}
-                  onChange={(e) => setImgForm((f) => ({ ...f, file: e.target.files?.[0] ?? null }))}
+                  onChange={(event) =>
+                    setImgForm((current) => ({
+                      ...current,
+                      file: event.target.files?.[0] ?? null,
+                    }))
+                  }
                 />
               </div>
             </label>
           </div>
           <div className={styles.formActions}>
-            <button type="button" className={styles.btnSecondary}
-              onClick={() => { setAddImgOpen(false); setImgForm(BLANK_IMG); }}>
+            <button
+              type="button"
+              className={styles.btnSecondary}
+              onClick={() => {
+                setAddImgOpen(false);
+                setImgForm(BLANK_IMG);
+              }}
+            >
               Cancelar
             </button>
-            <button type="submit" className={styles.btnPrimary}>
-              Adicionar
+            <button type="submit" className={styles.btnPrimary} disabled={loading}>
+              Salvar imagem
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* Modal: Adicionar Vídeo */}
       <Modal
         isOpen={addVidOpen}
-        onClose={() => { setAddVidOpen(false); setVidForm(BLANK_VID); }}
-        title="Adicionar Vídeo"
+        onClose={() => {
+          setAddVidOpen(false);
+          setVidForm(BLANK_VID);
+        }}
+        title="Adicionar Video"
         size="sm"
       >
         <form onSubmit={handleAddVideo}>
           <div className={styles.formStack}>
             <label>
-              Título
+              Titulo
               <input
                 type="text"
                 value={vidForm.titulo}
-                onChange={(e) => setVidForm((f) => ({ ...f, titulo: e.target.value }))}
-                placeholder="Ex: Apresentação da clínica"
+                onChange={(event) =>
+                  setVidForm((current) => ({ ...current, titulo: event.target.value }))
+                }
+                placeholder="Ex: Video de apresentacao"
                 required
               />
             </label>
@@ -332,17 +732,21 @@ export default function MidiaPage() {
               Categoria
               <select
                 value={vidForm.categoria}
-                onChange={(e) => setVidForm((f) => ({ ...f, categoria: e.target.value }))}
+                onChange={(event) =>
+                  setVidForm((current) => ({ ...current, categoria: event.target.value }))
+                }
                 required
               >
                 <option value="">Selecionar...</option>
-                <option>Marketing</option>
-                <option>Educativo</option>
-                <option>Depoimentos</option>
+                {VIDEO_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
               </select>
             </label>
             <label>
-              Arquivo de vídeo
+              Arquivo de video
               <div className={styles.fileRow}>
                 <button
                   type="button"
@@ -350,25 +754,36 @@ export default function MidiaPage() {
                   onClick={() => vidInputRef.current?.click()}
                 >
                   <Video size={14} />
-                  {vidForm.file ? vidForm.file.name : "Selecionar vídeo"}
+                  {vidForm.file ? vidForm.file.name : "Selecionar video"}
                 </button>
                 <input
                   ref={vidInputRef}
                   type="file"
                   accept="video/*"
                   className={styles.hiddenInput}
-                  onChange={(e) => setVidForm((f) => ({ ...f, file: e.target.files?.[0] ?? null }))}
+                  onChange={(event) =>
+                    setVidForm((current) => ({
+                      ...current,
+                      file: event.target.files?.[0] ?? null,
+                    }))
+                  }
                 />
               </div>
             </label>
           </div>
           <div className={styles.formActions}>
-            <button type="button" className={styles.btnSecondary}
-              onClick={() => { setAddVidOpen(false); setVidForm(BLANK_VID); }}>
+            <button
+              type="button"
+              className={styles.btnSecondary}
+              onClick={() => {
+                setAddVidOpen(false);
+                setVidForm(BLANK_VID);
+              }}
+            >
               Cancelar
             </button>
-            <button type="submit" className={styles.btnPrimary}>
-              Adicionar
+            <button type="submit" className={styles.btnPrimary} disabled={loading}>
+              Salvar video
             </button>
           </div>
         </form>
