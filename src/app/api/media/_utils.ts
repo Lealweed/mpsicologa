@@ -1,6 +1,8 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 const PUBLIC_MEDIA_BUCKET = "public_media";
+const PUBLIC_MEDIA_FILE_SIZE_LIMIT = 200 * 1024 * 1024;
+const PUBLIC_MEDIA_ALLOWED_MIME_TYPES = ["image/*", "video/*"];
 const VIDEO_CATEGORY_PREFIX = "video:";
 
 export type MediaKind = "image" | "video";
@@ -65,7 +67,37 @@ export async function ensurePublicMediaBucket() {
     throw new Error(`Nao foi possivel listar os buckets: ${error.message}`);
   }
 
-  if (buckets.some((bucket) => bucket.name === PUBLIC_MEDIA_BUCKET)) {
+  const bucket = buckets.find((entry) => entry.name === PUBLIC_MEDIA_BUCKET);
+
+  if (bucket) {
+    const supportsConfiguredLimit =
+      bucket.file_size_limit == null ||
+      bucket.file_size_limit >= PUBLIC_MEDIA_FILE_SIZE_LIMIT;
+    const supportsConfiguredTypes =
+      !bucket.allowed_mime_types ||
+      PUBLIC_MEDIA_ALLOWED_MIME_TYPES.every((type) =>
+        bucket.allowed_mime_types?.includes(type),
+      );
+
+    if (bucket.public && supportsConfiguredLimit && supportsConfiguredTypes) {
+      return;
+    }
+
+    const { error: updateError } = await supabaseAdmin.storage.updateBucket(
+      PUBLIC_MEDIA_BUCKET,
+      {
+        public: true,
+        fileSizeLimit: PUBLIC_MEDIA_FILE_SIZE_LIMIT,
+        allowedMimeTypes: PUBLIC_MEDIA_ALLOWED_MIME_TYPES,
+      },
+    );
+
+    if (updateError) {
+      throw new Error(
+        `Nao foi possivel atualizar o bucket de midia: ${updateError.message}`,
+      );
+    }
+
     return;
   }
 
@@ -73,7 +105,8 @@ export async function ensurePublicMediaBucket() {
     PUBLIC_MEDIA_BUCKET,
     {
       public: true,
-      fileSizeLimit: 20 * 1024 * 1024,
+      fileSizeLimit: PUBLIC_MEDIA_FILE_SIZE_LIMIT,
+      allowedMimeTypes: PUBLIC_MEDIA_ALLOWED_MIME_TYPES,
     },
   );
 

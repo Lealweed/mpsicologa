@@ -3,17 +3,32 @@ import styles from "./page.module.css";
 import {
   MARKETING_IMAGE_CATEGORIES,
   MARKETING_IMAGE_SLOTS,
+  MARKETING_VIDEO_CATEGORIES,
+  MARKETING_VIDEO_SLOTS,
   type MarketingImageCategory,
+  type MarketingVideoCategory,
 } from "@/lib/site-media";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
 type MarketingImages = Record<MarketingImageCategory, string | null>;
+type MarketingVideoItem = {
+  title: string;
+  url: string;
+};
+type MarketingVideos = Record<MarketingVideoCategory, MarketingVideoItem | null>;
 
 function createEmptyMarketingImages(): MarketingImages {
   return {
     Hero: null,
+    Sobre: null,
+    Empresas: null,
+  };
+}
+
+function createEmptyMarketingVideos(): MarketingVideos {
+  return {
     Sobre: null,
     Empresas: null,
   };
@@ -52,6 +67,47 @@ async function getMarketingImages(): Promise<MarketingImages> {
   }
 }
 
+async function getMarketingVideos(): Promise<MarketingVideos> {
+  try {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return createEmptyMarketingVideos();
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+    const { data, error } = await supabaseAdmin
+      .from("site_media")
+      .select("id, title, category, url")
+      .in(
+        "category",
+        MARKETING_VIDEO_CATEGORIES.map((category) => `video:${category}`),
+      )
+      .order("id", { ascending: false });
+
+    if (error || !data) {
+      return createEmptyMarketingVideos();
+    }
+
+    const videos = createEmptyMarketingVideos();
+
+    for (const item of data) {
+      const slot = MARKETING_VIDEO_SLOTS.find(
+        (entry) => item.category === `video:${entry.category}`,
+      );
+
+      if (slot && !videos[slot.category]) {
+        videos[slot.category] = {
+          title: item.title,
+          url: item.url,
+        };
+      }
+    }
+
+    return videos;
+  } catch {
+    return createEmptyMarketingVideos();
+  }
+}
+
 function MarketingImage({
   category,
   src,
@@ -77,6 +133,38 @@ function MarketingImage({
       <span className={styles.imagePlaceholderText}>
         Envie sua imagem em Dashboard &gt; Midia usando a categoria {category}.
       </span>
+    </div>
+  );
+}
+
+function MarketingVideo({
+  slot,
+  video,
+}: {
+  slot: (typeof MARKETING_VIDEO_SLOTS)[number];
+  video: MarketingVideoItem | null;
+}) {
+  return (
+    <div className={styles.videoCard}>
+      {video ? (
+        <video className={styles.videoPlayer} controls preload="metadata" playsInline>
+          <source src={video.url} />
+          Seu navegador nao conseguiu carregar este video.
+        </video>
+      ) : (
+        <div className={styles.videoPlaceholder}>
+          <div className={styles.videoPlayBtn} aria-hidden>
+            <IconPlay />
+          </div>
+          <span className={styles.videoPlaceholderText}>
+            Envie um video em Dashboard &gt; Midia usando a categoria {slot.category}.
+          </span>
+        </div>
+      )}
+      <div className={styles.videoMeta}>
+        <span className={styles.videoLabel}>{slot.label}</span>
+        <p className={styles.videoTitle}>{video?.title ?? slot.title}</p>
+      </div>
     </div>
   );
 }
@@ -354,21 +442,11 @@ function ServicesSection() {
 }
 
 // ── Videos ────────────────────────────────────────────────────────────────────
-function VideosSection() {
-  const videos = [
-    {
-      label: "Sobre mim",
-      title: "Como funciona a terapia online com a Mayara",
-      // TODO: Substitua pelo link real do YouTube
-      youtubeId: null as string | null,
-    },
-    {
-      label: "Empresas",
-      title: "Psicologia corporativa — como atendo empresas",
-      // TODO: Substitua pelo link real do YouTube
-      youtubeId: null as string | null,
-    },
-  ];
+function VideosSection({ videos }: { videos: MarketingVideos }) {
+  const videoCards = MARKETING_VIDEO_SLOTS.map((slot) => ({
+    slot,
+    video: videos[slot.category],
+  }));
 
   return (
     <section className={styles.videos}>
@@ -386,29 +464,12 @@ function VideosSection() {
         </header>
 
         <div className={styles.videosGrid}>
-          {videos.map((v) => (
-            <div key={v.title} className={styles.videoCard}>
-              {v.youtubeId ? (
-                <iframe
-                  style={{ width: "100%", aspectRatio: "16/9", border: "none", display: "block" }}
-                  src={`https://www.youtube.com/embed/${v.youtubeId}`}
-                  title={v.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : (
-                <div className={styles.videoPlaceholder}>
-                  <div className={styles.videoPlayBtn} aria-hidden>
-                    <IconPlay />
-                  </div>
-                  <span className={styles.videoPlaceholderText}>Vídeo em breve</span>
-                </div>
-              )}
-              <div className={styles.videoMeta}>
-                <span className={styles.videoLabel}>{v.label}</span>
-                <p className={styles.videoTitle}>{v.title}</p>
-              </div>
-            </div>
+          {videoCards.map(({ slot, video }) => (
+            <MarketingVideo
+              key={slot.category}
+              slot={slot}
+              video={video}
+            />
           ))}
         </div>
       </div>
@@ -608,14 +669,18 @@ function Footer() {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default async function MarketingHome() {
-  const images = await getMarketingImages();
+  const [images, videos] = await Promise.all([
+    getMarketingImages(),
+    getMarketingVideos(),
+  ]);
+
   return (
     <main>
       <HeroSection heroImg={images.Hero} />
       <StatsSection />
       <AboutSection aboutImg={images.Sobre} />
       <ServicesSection />
-      <VideosSection />
+      <VideosSection videos={videos} />
       <CorporateSection corporateImg={images.Empresas} />
       <TestimonialsSection />
       <ContactSection />

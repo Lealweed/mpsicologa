@@ -7,7 +7,10 @@ import { Plus, Trash2, RefreshCw, Play, ImageIcon, Video } from "lucide-react";
 import PageHeader from "../_components/PageHeader";
 import Modal from "../_components/Modal";
 import styles from "./midia.module.css";
-import { MARKETING_IMAGE_SLOTS, VIDEO_CATEGORIES } from "@/lib/site-media";
+import {
+  MARKETING_IMAGE_SLOTS,
+  MARKETING_VIDEO_SLOTS,
+} from "@/lib/site-media";
 import { supabase } from "@/lib/supabase/client";
 
 type MediaKind = "image" | "video";
@@ -37,7 +40,7 @@ type VideoItem = {
   id: number;
   titulo: string;
   categoria: string;
-  thumb: string;
+  url: string;
 };
 
 type Tab = "imagens" | "videos";
@@ -71,7 +74,7 @@ function mapVideo(item: MediaApiItem): VideoItem {
     id: item.id,
     titulo: item.title,
     categoria: item.category,
-    thumb: item.url,
+    url: item.url,
   };
 }
 
@@ -231,10 +234,12 @@ function ImageCard({
 
 function VideoCard({
   vid,
+  active,
   onDelete,
   onReplace,
 }: {
   vid: VideoItem;
+  active: boolean;
   onDelete: (id: number) => void;
   onReplace: (id: number, file: File) => void;
 }) {
@@ -254,7 +259,13 @@ function VideoCard({
   return (
     <div className={styles.mediaCard}>
       <div className={styles.mediaThumb}>
-        <img src={vid.thumb} alt={vid.titulo} className={styles.mediaImg} />
+        <video
+          src={vid.url}
+          className={styles.mediaVideo}
+          preload="metadata"
+          muted
+          playsInline
+        />
         <div className={styles.playOverlay}>
           <Play size={28} fill="#fff" color="#fff" />
         </div>
@@ -276,6 +287,7 @@ function VideoCard({
             <Trash2 size={16} />
           </button>
         </div>
+        {active ? <span className={styles.activeBadge}>Ativo no site</span> : null}
       </div>
       <input
         ref={inputRef}
@@ -308,6 +320,10 @@ export default function MidiaPage() {
   const activeImages = MARKETING_IMAGE_SLOTS.map((slot) => ({
     slot,
     image: imagens.find((img) => img.categoria === slot.category) ?? null,
+  }));
+  const activeVideos = MARKETING_VIDEO_SLOTS.map((slot) => ({
+    slot,
+    video: videos.find((vid) => vid.categoria === slot.category) ?? null,
   }));
 
   const loadMedia = useCallback(async () => {
@@ -536,17 +552,17 @@ export default function MidiaPage() {
     <div>
       <PageHeader
         title="Midia"
-        subtitle="Envie imagens reais do seu computador e troque o que aparece no site."
+        subtitle="Envie fotos e videos reais do seu computador e troque o que aparece no site."
         actions={addBtn}
       />
 
       <section className={styles.guideCard}>
         <div className={styles.guideHeader}>
           <div>
-            <h2 className={styles.guideTitle}>Fotos reais da pagina inicial</h2>
+            <h2 className={styles.guideTitle}>Midias da pagina inicial</h2>
             <p className={styles.guideText}>
-              Para remover os mockups, envie suas fotos usando as categorias abaixo.
-              A imagem mais recente de cada categoria e a que aparece na home.
+              As categorias abaixo controlam o que aparece na home. A midia mais
+              recente de cada categoria e a que fica ativa no site.
             </p>
           </div>
           <button
@@ -560,26 +576,56 @@ export default function MidiaPage() {
           </button>
         </div>
 
-        <div className={styles.guideGrid}>
-          {activeImages.map(({ slot, image }) => (
-            <article key={slot.category} className={styles.guideItem}>
-              <div className={styles.guideItemHeader}>
-                <span className={styles.guideItemTitle}>{slot.label}</span>
-                <span
-                  className={`${styles.guideStatus} ${
-                    image ? styles.guideStatusReady : styles.guideStatusPending
-                  }`}
-                >
-                  {image ? "Configurada" : "Pendente"}
-                </span>
-              </div>
-              <span className={styles.guideItemCategory}>{slot.category}</span>
-              <p className={styles.guideItemText}>{slot.description}</p>
-              <p className={styles.guideItemCurrent}>
-                {image ? `Ativa agora: ${image.titulo}` : "Nenhuma foto real enviada ainda."}
-              </p>
-            </article>
-          ))}
+        <div className={styles.guideSection}>
+          <h3 className={styles.guideSectionTitle}>Fotos da home</h3>
+          <div className={styles.guideGrid}>
+            {activeImages.map(({ slot, image }) => (
+              <article key={slot.category} className={styles.guideItem}>
+                <div className={styles.guideItemHeader}>
+                  <span className={styles.guideItemTitle}>{slot.label}</span>
+                  <span
+                    className={`${styles.guideStatus} ${
+                      image ? styles.guideStatusReady : styles.guideStatusPending
+                    }`}
+                  >
+                    {image ? "Configurada" : "Pendente"}
+                  </span>
+                </div>
+                <span className={styles.guideItemCategory}>{slot.category}</span>
+                <p className={styles.guideItemText}>{slot.description}</p>
+                <p className={styles.guideItemCurrent}>
+                  {image ? `Ativa agora: ${image.titulo}` : "Nenhuma foto real enviada ainda."}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.guideSection}>
+          <h3 className={styles.guideSectionTitle}>
+            Videos da secao &quot;Veja como posso te ajudar&quot;
+          </h3>
+          <div className={styles.guideGrid}>
+            {activeVideos.map(({ slot, video }) => (
+              <article key={`video-${slot.category}`} className={styles.guideItem}>
+                <div className={styles.guideItemHeader}>
+                  <span className={styles.guideItemTitle}>{slot.title}</span>
+                  <span
+                    className={`${styles.guideStatus} ${
+                      video ? styles.guideStatusReady : styles.guideStatusPending
+                    }`}
+                  >
+                    {video ? "Configurado" : "Pendente"}
+                  </span>
+                </div>
+                <span className={styles.guideItemCategory}>{slot.category}</span>
+                <p className={styles.guideItemText}>{slot.description}</p>
+                <p className={styles.guideItemCurrent}>
+                  {video ? `Ativo agora: ${video.titulo}` : "Nenhum video enviado ainda."}
+                </p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -640,6 +686,11 @@ export default function MidiaPage() {
               <VideoCard
                 key={vid.id}
                 vid={vid}
+                active={Boolean(
+                  activeVideos.find(
+                    ({ slot, video }) => slot.category === vid.categoria && video?.id === vid.id,
+                  ),
+                )}
                 onDelete={handleDeleteVideo}
                 onReplace={handleReplaceVideo}
               />
@@ -768,12 +819,16 @@ export default function MidiaPage() {
                 required
               >
                 <option value="">Selecionar...</option>
-                {VIDEO_CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
+                {MARKETING_VIDEO_SLOTS.map((slot) => (
+                  <option key={slot.category} value={slot.category}>
+                    {slot.category} - {slot.label}
                   </option>
                 ))}
               </select>
+              <span className={styles.fieldHint}>
+                Sobre = video principal da secao de apresentacao. Empresas = video
+                da secao corporativa.
+              </span>
             </label>
             <label>
               Arquivo de video

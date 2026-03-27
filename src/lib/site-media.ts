@@ -26,7 +26,29 @@ export const MARKETING_IMAGE_CATEGORIES = MARKETING_IMAGE_SLOTS.map(
   (slot) => slot.category,
 );
 
-export const VIDEO_CATEGORIES = ["Marketing", "Educativo", "Depoimentos"] as const;
+export const MARKETING_VIDEO_SLOTS = [
+  {
+    category: "Sobre",
+    label: "Sobre mim",
+    title: "Como funciona a terapia online com a Mayara",
+    description: "Video principal da secao Conheca meu trabalho.",
+  },
+  {
+    category: "Empresas",
+    label: "Empresas",
+    title: "Psicologia corporativa - como atendo empresas",
+    description: "Video da home para apresentar o atendimento corporativo.",
+  },
+] as const;
+
+export type MarketingVideoCategory =
+  (typeof MARKETING_VIDEO_SLOTS)[number]["category"];
+
+export const MARKETING_VIDEO_CATEGORIES = MARKETING_VIDEO_SLOTS.map(
+  (slot) => slot.category,
+);
+
+export const VIDEO_CATEGORIES = MARKETING_VIDEO_CATEGORIES;
 
 export function isSupabaseConfigured(
   url: string | undefined,

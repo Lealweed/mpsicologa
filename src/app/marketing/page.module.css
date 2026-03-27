@@ -580,6 +580,14 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
+.videoPlayer {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  background: #120f0f;
+  border: none;
+}
+
 .videoPlaceholder {
   aspect-ratio: 16 / 9;
   background: rgba(255, 255, 255, 0.04);
