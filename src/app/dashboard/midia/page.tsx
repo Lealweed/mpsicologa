@@ -260,7 +260,7 @@ function VideoCard({
     <div className={styles.mediaCard}>
       <div className={styles.mediaThumb}>
         <video
-          src={vid.url}
+          src={`${vid.url}#t=0.001`}
           className={styles.mediaVideo}
           preload="metadata"
           muted
