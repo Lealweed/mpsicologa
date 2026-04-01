@@ -43,6 +43,26 @@ export type DashboardFinanceEntry = {
   createdAt: string;
 };
 
+export type DashboardTestimonial = {
+  id: string;
+  author: string;
+  role: string;
+  location: string;
+  text: string;
+  imageUrl: string;
+  rating: number;
+  initials: string;
+  active: boolean;
+  order: number;
+  createdAt: string;
+};
+
+type SignedUploadResponse = {
+  path: string;
+  token: string;
+  publicUrl: string;
+};
+
 export async function fetchDashboardApi<T>(path: string, init: RequestInit = {}) {
   const {
     data: { session },
@@ -85,4 +105,34 @@ export async function fetchDashboardApi<T>(path: string, init: RequestInit = {})
   }
 
   return data as T;
+}
+
+export async function uploadDashboardFileToStorage(
+  file: File,
+  kind: "image" | "video" = "image",
+) {
+  const signedUploadResponse = await fetchDashboardApi<SignedUploadResponse>(
+    "/api/media/upload-url",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        fileName: file.name,
+        kind,
+      }),
+    },
+  );
+
+  const { error } = await supabase.storage
+    .from("public_media")
+    .uploadToSignedUrl(signedUploadResponse.path, signedUploadResponse.token, file, {
+      contentType: file.type,
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (error) {
+    throw new Error(`Nao foi possivel enviar o arquivo: ${error.message}`);
+  }
+
+  return signedUploadResponse.publicUrl;
 }

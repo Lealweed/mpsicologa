@@ -18,6 +18,19 @@ type MarketingVideoItem = {
   url: string;
 };
 type MarketingVideos = Record<MarketingVideoCategory, MarketingVideoItem | null>;
+type MarketingTestimonial = {
+  id: string;
+  author: string;
+  role: string;
+  location: string;
+  text: string;
+  imageUrl: string;
+  rating: number;
+  initials: string;
+  active: boolean;
+  order: number;
+  createdAt: string;
+};
 
 function createEmptyMarketingImages(): MarketingImages {
   return {
@@ -105,6 +118,35 @@ async function getMarketingVideos(): Promise<MarketingVideos> {
     return videos;
   } catch {
     return createEmptyMarketingVideos();
+  }
+}
+
+async function getMarketingTestimonials(): Promise<MarketingTestimonial[]> {
+  try {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return [];
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+    const { data, error } = await supabaseAdmin
+      .from("system_settings")
+      .select("value")
+      .eq("key", "marketing_testimonials")
+      .maybeSingle();
+
+    if (error) {
+      return [];
+    }
+
+    const items = Array.isArray(data?.value)
+      ? (data.value as MarketingTestimonial[])
+      : [];
+
+    return items
+      .filter((item) => item.active !== false)
+      .sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0));
+  } catch {
+    return [];
   }
 }
 
@@ -706,28 +748,7 @@ function CorporateSection({
 }
 
 // ── Testimonials ──────────────────────────────────────────────────────────────
-function TestimonialsSection() {
-  const testimonials = [
-    {
-      text: "A terapia com a Mayara transformou a forma como eu enxergo minha vida. Me sinto muito mais forte e preparada para os desafios do dia a dia. Gratidão imensurável.",
-      author: "A.M.",
-      role: "34 anos, São Paulo",
-      avatar: "https://i.pravatar.cc/44?u=am-sp-patient",
-    },
-    {
-      text: "Nunca pensei que terapia online pudesse ser tão acolhedora. A Mayara tem uma escuta especial que me fez sentir segura desde o primeiro momento.",
-      author: "C.S.",
-      role: "28 anos, Rio de Janeiro",
-      avatar: "https://i.pravatar.cc/44?u=cs-rj-patient",
-    },
-    {
-      text: "O acompanhamento da Mayara foi fundamental para conseguir a aprovação para minha cirurgia. Processo leve, humano e muito profissional.",
-      author: "F.R.",
-      role: "42 anos, Belo Horizonte",
-      avatar: "https://i.pravatar.cc/44?u=fr-bh-patient",
-    },
-  ];
-
+function TestimonialsSection({ testimonials }: { testimonials: MarketingTestimonial[] }) {
   return (
     <section className={styles.testimonials}>
       <div className={styles.testimonialsInner}>
@@ -735,30 +756,51 @@ function TestimonialsSection() {
           <span className={styles.eyebrow}>Depoimentos</span>
           <h2 className={styles.sectionHeading}>O que dizem meus pacientes.</h2>
           <p className={styles.sectionText}>
-            Depoimentos voluntários e identificados somente com iniciais para preservar a
-            privacidade de cada pessoa.
+            Depoimentos reais e autorizados, com edição feita diretamente no painel para
+            manter cada relato atualizado e verdadeiro.
           </p>
         </header>
-        <div className={styles.testimonialsGrid}>
-          {testimonials.map((t) => (
-            <article key={t.author} className={styles.testimonialCard}>
-              <span className={styles.testimonialQuoteMark} aria-hidden>&ldquo;</span>
-              <p className={styles.testimonialText}>{t.text}</p>
-              <div className={styles.testimonialAuthorRow}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={t.avatar}
-                  alt={`Avatar de ${t.author}`}
-                  className={styles.testimonialAvatar}
-                />
-                <div>
-                  <div className={styles.testimonialAuthor}>{t.author}</div>
-                  <div className={styles.testimonialRole}>{t.role}</div>
+
+        {testimonials.length === 0 ? (
+          <div className={styles.testimonialsEmpty}>
+            Os depoimentos reais serão publicados em breve, conforme autorização de cada
+            paciente.
+          </div>
+        ) : (
+          <div className={styles.testimonialsGrid}>
+            {testimonials.map((t) => (
+              <article key={t.id} className={styles.testimonialCard}>
+                <span className={styles.testimonialQuoteMark} aria-hidden>&ldquo;</span>
+                <div className={styles.testimonialStars} aria-label={`${t.rating} de 5 estrelas`}>
+                  {Array.from({ length: t.rating || 5 }, (_, index) => (
+                    <span key={`${t.id}-star-${index}`} className={styles.testimonialStar}>★</span>
+                  ))}
                 </div>
-              </div>
-            </article>
-          ))}
-        </div>
+                <p className={styles.testimonialText}>{t.text}</p>
+                <div className={styles.testimonialAuthorRow}>
+                  {t.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={t.imageUrl}
+                      alt={`Foto de ${t.author}`}
+                      className={styles.testimonialAvatar}
+                    />
+                  ) : (
+                    <div className={styles.testimonialAvatarFallback}>
+                      {t.initials || t.author.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <div className={styles.testimonialAuthor}>{t.author}</div>
+                    <div className={styles.testimonialRole}>
+                      {[t.role, t.location].filter(Boolean).join(" • ")}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -838,9 +880,10 @@ function Footer() {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default async function MarketingHome() {
-  const [images, videos] = await Promise.all([
+  const [images, videos, testimonials] = await Promise.all([
     getMarketingImages(),
     getMarketingVideos(),
+    getMarketingTestimonials(),
   ]);
 
   return (
@@ -853,7 +896,7 @@ export default async function MarketingHome() {
       <VideosSection videos={videos} />
       <CourseSection />
       <CorporateSection corporateImg={images.Empresas} />
-      <TestimonialsSection />
+      <TestimonialsSection testimonials={testimonials} />
       <PaymentSection />
       <ContactSection />
       <Footer />
