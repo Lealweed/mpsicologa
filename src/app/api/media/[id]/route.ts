@@ -13,11 +13,23 @@ type UpdateMediaPayload = {
   url: string;
 };
 
-function extractIdFromUrl(request: NextRequest): number | null {
+type RouteContext = { params: Promise<{ id: string }> };
+
+async function resolveMediaId(
+  request: NextRequest,
+  context: RouteContext,
+): Promise<number | null> {
+  try {
+    const { id } = await context.params;
+    const n = Number(id);
+    if (!Number.isNaN(n) && n > 0) return n;
+  } catch {
+    // fallback to URL
+  }
   const segments = request.nextUrl.pathname.split("/");
   const last = segments[segments.length - 1];
-  const id = Number(last);
-  return Number.isNaN(id) ? null : id;
+  const n = Number(last);
+  return !Number.isNaN(n) && n > 0 ? n : null;
 }
 
 async function getMediaRow(id: number) {
@@ -78,9 +90,10 @@ async function parseUpdatePayload(
 
 export async function DELETE(
   request: NextRequest,
+  context: RouteContext,
 ) {
   try {
-    const mediaId = extractIdFromUrl(request);
+    const mediaId = await resolveMediaId(request, context);
 
     if (mediaId === null) {
       return NextResponse.json({ error: "ID de midia invalido." }, { status: 400 });
@@ -112,9 +125,10 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
+  context: RouteContext,
 ) {
   try {
-    const mediaId = extractIdFromUrl(request);
+    const mediaId = await resolveMediaId(request, context);
 
     if (mediaId === null) {
       return NextResponse.json({ error: "ID de midia invalido." }, { status: 400 });
