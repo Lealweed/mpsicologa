@@ -111,8 +111,14 @@ async function getApiError(response: Response) {
   }
 
   try {
-    const payload = JSON.parse(raw) as { error?: string };
-    return payload.error || `Falha ao processar a solicitacao (${response.status}).`;
+    const payload = JSON.parse(raw) as { error?: string; debug?: unknown };
+    const base = payload.error || `Falha ao processar a solicitacao (${response.status}).`;
+
+    if (payload.debug) {
+      return `${base} | debug: ${JSON.stringify(payload.debug)}`;
+    }
+
+    return base;
   } catch {
     return raw;
   }
@@ -176,7 +182,7 @@ async function replaceMediaRecord(
   id: number,
   payload: { kind: MediaKind; url: string },
 ) {
-  const response = await fetch("/api/media/update", {
+  const response = await fetch(`/api/media/update?id=${id}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -197,7 +203,7 @@ async function updateMediaInfoRecord(payload: {
   title: string;
   category: string;
 }) {
-  const response = await fetch("/api/media/update", {
+  const response = await fetch(`/api/media/update?id=${payload.id}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -484,7 +490,7 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const response = await fetch("/api/media/delete", {
+      const response = await fetch(`/api/media/delete?id=${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -575,7 +581,7 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const response = await fetch("/api/media/delete", {
+      const response = await fetch(`/api/media/delete?id=${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

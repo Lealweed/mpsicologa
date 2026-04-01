@@ -45,8 +45,17 @@ export async function POST(request: Request) {
   let mediaId: number | null = null;
 
   try {
-    body = (await request.json()) as UpdateMediaPayload;
+    try {
+      body = (await request.json()) as UpdateMediaPayload;
+    } catch {
+      body = {};
+    }
     mediaId = normalizeMediaId(body.id);
+
+    if (mediaId === null) {
+      const queryId = new URL(request.url).searchParams.get("id");
+      mediaId = normalizeMediaId(queryId);
+    }
 
     if (mediaId === null) {
       return NextResponse.json(
@@ -55,6 +64,7 @@ export async function POST(request: Request) {
           debug: {
             operation: "media-update",
             receivedId: body.id ?? null,
+            queryId: new URL(request.url).searchParams.get("id"),
             normalizedId: mediaId,
             receivedTitle: body.title ?? null,
             receivedCategory: body.category ?? null,
@@ -74,6 +84,7 @@ export async function POST(request: Request) {
           debug: {
             operation: "media-update",
             receivedId: body.id ?? null,
+            queryId: new URL(request.url).searchParams.get("id"),
             normalizedId: mediaId,
           },
         },
@@ -95,6 +106,7 @@ export async function POST(request: Request) {
           debug: {
             operation: "media-update",
             receivedId: body.id ?? null,
+            queryId: new URL(request.url).searchParams.get("id"),
             normalizedId: mediaId,
             receivedTitle: body.title ?? null,
             receivedCategory: body.category ?? null,
@@ -132,6 +144,7 @@ export async function POST(request: Request) {
           debug: {
             operation: "media-update",
             receivedId: body.id ?? null,
+            queryId: new URL(request.url).searchParams.get("id"),
             normalizedId: mediaId,
             code: error?.code ?? null,
             details: error?.details ?? null,
@@ -162,6 +175,7 @@ export async function POST(request: Request) {
         debug: {
           operation: "media-update",
           receivedId: body.id ?? null,
+          queryId: new URL(request.url).searchParams.get("id"),
           normalizedId: mediaId,
           receivedTitle: body.title ?? null,
           receivedCategory: body.category ?? null,
