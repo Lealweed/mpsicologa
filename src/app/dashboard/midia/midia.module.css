@@ -258,6 +258,23 @@
   background: #120f0f;
 }
 
+.videoFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #2a2323, #1a1515);
+}
+
+.videoFallbackText {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 .mediaCard:hover .mediaImg,
 .mediaCard:hover .mediaVideo { transform: scale(1.03); }
 

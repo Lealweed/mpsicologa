@@ -147,7 +147,8 @@ function MarketingVideo({
   return (
     <div className={styles.videoCard}>
       {video ? (
-        <video className={styles.videoPlayer} controls preload="metadata" playsInline>
+        <video className={styles.videoPlayer} controls preload="metadata" playsInline crossOrigin="anonymous">
+          <source src={video.url} type="video/mp4" />
           <source src={video.url} />
           Seu navegador nao conseguiu carregar este video.
         </video>

@@ -118,6 +118,7 @@ async function uploadFileToStorage(file: File, kind: MediaKind) {
   const { error } = await supabase.storage
     .from("public_media")
     .uploadToSignedUrl(path, token, file, {
+      contentType: file.type,
       cacheControl: "3600",
       upsert: false,
     });
@@ -245,6 +246,7 @@ function VideoCard({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoError, setVideoError] = useState(false);
 
   function handleLoadedMetadata() {
     if (videoRef.current) {
@@ -266,18 +268,29 @@ function VideoCard({
   return (
     <div className={styles.mediaCard}>
       <div className={styles.mediaThumb}>
-        <video
-          ref={videoRef}
-          src={vid.url}
-          className={styles.mediaVideo}
-          preload="metadata"
-          muted
-          playsInline
-          onLoadedMetadata={handleLoadedMetadata}
-        />
-        <div className={styles.playOverlay}>
-          <Play size={28} fill="#fff" color="#fff" />
-        </div>
+        {videoError ? (
+          <div className={styles.videoFallback}>
+            <Play size={28} color="var(--muted)" />
+            <span className={styles.videoFallbackText}>Video enviado</span>
+          </div>
+        ) : (
+          <>
+            <video
+              ref={videoRef}
+              src={vid.url}
+              className={styles.mediaVideo}
+              preload="metadata"
+              muted
+              playsInline
+              crossOrigin="anonymous"
+              onLoadedMetadata={handleLoadedMetadata}
+              onError={() => setVideoError(true)}
+            />
+            <div className={styles.playOverlay}>
+              <Play size={28} fill="#fff" color="#fff" />
+            </div>
+          </>
+        )}
         <div className={styles.mediaOverlay}>
           <button
             type="button"
