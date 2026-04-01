@@ -244,6 +244,13 @@ function VideoCard({
   onReplace: (id: number, file: File) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  function handleLoadedMetadata() {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0.001;
+    }
+  }
 
   function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -260,11 +267,13 @@ function VideoCard({
     <div className={styles.mediaCard}>
       <div className={styles.mediaThumb}>
         <video
-          src={`${vid.url}#t=0.001`}
+          ref={videoRef}
+          src={vid.url}
           className={styles.mediaVideo}
           preload="metadata"
           muted
           playsInline
+          onLoadedMetadata={handleLoadedMetadata}
         />
         <div className={styles.playOverlay}>
           <Play size={28} fill="#fff" color="#fff" />
@@ -635,7 +644,7 @@ export default function MidiaPage() {
         <button
           type="button"
           className={`${styles.tab} ${tab === "imagens" ? styles.tabActive : ""}`}
-          onClick={() => setTab("imagens")}
+          onClick={() => { setTab("imagens"); setErrorMessage(""); }}
         >
           <ImageIcon size={15} />
           Imagens
@@ -644,7 +653,7 @@ export default function MidiaPage() {
         <button
           type="button"
           className={`${styles.tab} ${tab === "videos" ? styles.tabActive : ""}`}
-          onClick={() => setTab("videos")}
+          onClick={() => { setTab("videos"); setErrorMessage(""); }}
         >
           <Video size={15} />
           Videos
