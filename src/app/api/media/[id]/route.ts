@@ -71,13 +71,15 @@ async function parseUpdatePayload(
 
 export async function DELETE(
   _request: Request,
-  context: { params: Promise<{ id: string }> },
+  context: { params: Promise<{ id: string }> | { id: string } },
 ) {
   try {
-    const { id } = await context.params;
+    const resolvedParams =
+      context.params instanceof Promise ? await context.params : context.params;
+    const id = resolvedParams.id;
     const mediaId = Number(id);
 
-    if (Number.isNaN(mediaId)) {
+    if (!id || Number.isNaN(mediaId)) {
       return NextResponse.json({ error: "ID de midia invalido." }, { status: 400 });
     }
 
@@ -107,13 +109,15 @@ export async function DELETE(
 
 export async function PATCH(
   request: Request,
-  context: { params: Promise<{ id: string }> },
+  context: { params: Promise<{ id: string }> | { id: string } },
 ) {
   try {
-    const { id } = await context.params;
+    const resolvedParams =
+      context.params instanceof Promise ? await context.params : context.params;
+    const id = resolvedParams.id;
     const mediaId = Number(id);
 
-    if (Number.isNaN(mediaId)) {
+    if (!id || Number.isNaN(mediaId)) {
       return NextResponse.json({ error: "ID de midia invalido." }, { status: 400 });
     }
 
