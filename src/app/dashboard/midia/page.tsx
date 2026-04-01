@@ -3,7 +3,15 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Plus, Trash2, RefreshCw, Play, ImageIcon, Video } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  RefreshCw,
+  Play,
+  ImageIcon,
+  Video,
+  Pencil,
+} from "lucide-react";
 import PageHeader from "../_components/PageHeader";
 import Modal from "../_components/Modal";
 import styles from "./midia.module.css";
@@ -57,8 +65,21 @@ type AddVideoForm = {
   file: File | null;
 };
 
+type EditMediaForm = {
+  id: number | null;
+  kind: MediaKind;
+  titulo: string;
+  categoria: string;
+};
+
 const BLANK_IMG: AddImageForm = { titulo: "", categoria: "", file: null };
 const BLANK_VID: AddVideoForm = { titulo: "", categoria: "", file: null };
+const BLANK_EDIT: EditMediaForm = {
+  id: null,
+  kind: "image",
+  titulo: "",
+  categoria: "",
+};
 
 function mapImage(item: MediaApiItem): ImageItem {
   return {
@@ -155,7 +176,28 @@ async function replaceMediaRecord(
   id: number,
   payload: { kind: MediaKind; url: string },
 ) {
-  const response = await fetch(`/api/media/${id}`, {
+  const response = await fetch("/api/media", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id, ...payload }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getApiError(response));
+  }
+
+  return (await response.json()) as MediaApiItem;
+}
+
+async function updateMediaInfoRecord(payload: {
+  id: number;
+  kind: MediaKind;
+  title: string;
+  category: string;
+}) {
+  const response = await fetch("/api/media", {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -175,11 +217,13 @@ function ImageCard({
   active,
   onDelete,
   onReplace,
+  onEdit,
 }: {
   img: ImageItem;
   active: boolean;
   onDelete: (id: number) => void;
   onReplace: (id: number, file: File) => void;
+  onEdit: (item: ImageItem) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -199,6 +243,14 @@ function ImageCard({
       <div className={styles.mediaThumb}>
         <img src={img.url} alt={img.titulo} className={styles.mediaImg} />
         <div className={styles.mediaOverlay}>
+          <button
+            type="button"
+            className={styles.overlayBtn}
+            onClick={() => onEdit(img)}
+            title="Editar legenda"
+          >
+            <Pencil size={16} />
+          </button>
           <button
             type="button"
             className={styles.overlayBtn}
@@ -238,11 +290,13 @@ function VideoCard({
   active,
   onDelete,
   onReplace,
+  onEdit,
 }: {
   vid: VideoItem;
   active: boolean;
   onDelete: (id: number) => void;
   onReplace: (id: number, file: File) => void;
+  onEdit: (item: VideoItem) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -295,6 +349,14 @@ function VideoCard({
           <button
             type="button"
             className={styles.overlayBtn}
+            onClick={() => onEdit(vid)}
+            title="Editar legenda"
+          >
+            <Pencil size={16} />
+          </button>
+          <button
+            type="button"
+            className={styles.overlayBtn}
             onClick={() => inputRef.current?.click()}
             title="Substituir"
           >
@@ -336,6 +398,8 @@ export default function MidiaPage() {
   const [addVidOpen, setAddVidOpen] = useState(false);
   const [imgForm, setImgForm] = useState<AddImageForm>(BLANK_IMG);
   const [vidForm, setVidForm] = useState<AddVideoForm>(BLANK_VID);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState<EditMediaForm>(BLANK_EDIT);
   const imgInputRef = useRef<HTMLInputElement>(null);
   const vidInputRef = useRef<HTMLInputElement>(null);
 
@@ -420,8 +484,12 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const response = await fetch(`/api/media/${id}`, {
+      const response = await fetch("/api/media", {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
       });
 
       if (!response.ok) {
@@ -507,8 +575,12 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const response = await fetch(`/api/media/${id}`, {
+      const response = await fetch("/api/media", {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
       });
 
       if (!response.ok) {
@@ -548,6 +620,69 @@ export default function MidiaPage() {
         error instanceof Error
           ? error.message
           : "Nao foi possivel substituir o video selecionado.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function openEditImagem(item: ImageItem) {
+    setEditForm({
+      id: item.id,
+      kind: "image",
+      titulo: item.titulo,
+      categoria: item.categoria,
+    });
+    setEditOpen(true);
+  }
+
+  function openEditVideo(item: VideoItem) {
+    setEditForm({
+      id: item.id,
+      kind: "video",
+      titulo: item.titulo,
+      categoria: item.categoria,
+    });
+    setEditOpen(true);
+  }
+
+  async function handleSaveEdit(event: React.FormEvent) {
+    event.preventDefault();
+
+    if (!editForm.id) {
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const updated = await updateMediaInfoRecord({
+        id: editForm.id,
+        kind: editForm.kind,
+        title: editForm.titulo.trim(),
+        category: editForm.categoria,
+      });
+
+      if (updated.kind === "image") {
+        const mapped = mapImage(updated);
+        setImagens((prev) =>
+          prev.map((item) => (item.id === mapped.id ? mapped : item)),
+        );
+      } else {
+        const mapped = mapVideo(updated);
+        setVideos((prev) =>
+          prev.map((item) => (item.id === mapped.id ? mapped : item)),
+        );
+      }
+
+      setEditOpen(false);
+      setEditForm(BLANK_EDIT);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel atualizar os dados da midia.",
       );
     } finally {
       setLoading(false);
@@ -693,6 +828,7 @@ export default function MidiaPage() {
                 )}
                 onDelete={handleDeleteImagem}
                 onReplace={handleReplaceImagem}
+                onEdit={openEditImagem}
               />
             ))
           )}
@@ -715,6 +851,7 @@ export default function MidiaPage() {
                 )}
                 onDelete={handleDeleteVideo}
                 onReplace={handleReplaceVideo}
+                onEdit={openEditVideo}
               />
             ))
           )}
@@ -803,6 +940,67 @@ export default function MidiaPage() {
             </button>
             <button type="submit" className={styles.btnPrimary} disabled={loading}>
               Salvar imagem
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={editOpen}
+        onClose={() => {
+          setEditOpen(false);
+          setEditForm(BLANK_EDIT);
+        }}
+        title="Editar legenda"
+        size="sm"
+      >
+        <form onSubmit={handleSaveEdit}>
+          <div className={styles.formStack}>
+            <label>
+              Titulo
+              <input
+                type="text"
+                value={editForm.titulo}
+                onChange={(event) =>
+                  setEditForm((current) => ({ ...current, titulo: event.target.value }))
+                }
+                required
+              />
+            </label>
+            <label>
+              Categoria
+              <select
+                value={editForm.categoria}
+                onChange={(event) =>
+                  setEditForm((current) => ({ ...current, categoria: event.target.value }))
+                }
+                required
+              >
+                <option value="">Selecionar...</option>
+                {(editForm.kind === "image"
+                  ? MARKETING_IMAGE_SLOTS.map((slot) => slot.category)
+                  : MARKETING_VIDEO_SLOTS.map((slot) => slot.category)
+                ).map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className={styles.formActions}>
+            <button
+              type="button"
+              className={styles.btnSecondary}
+              onClick={() => {
+                setEditOpen(false);
+                setEditForm(BLANK_EDIT);
+              }}
+            >
+              Cancelar
+            </button>
+            <button type="submit" className={styles.btnPrimary} disabled={loading}>
+              Salvar alteracoes
             </button>
           </div>
         </form>
