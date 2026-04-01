@@ -176,8 +176,8 @@ async function replaceMediaRecord(
   id: number,
   payload: { kind: MediaKind; url: string },
 ) {
-  const response = await fetch("/api/media", {
-    method: "PATCH",
+  const response = await fetch("/api/media/update", {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
@@ -197,8 +197,8 @@ async function updateMediaInfoRecord(payload: {
   title: string;
   category: string;
 }) {
-  const response = await fetch("/api/media", {
-    method: "PATCH",
+  const response = await fetch("/api/media/update", {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
@@ -484,8 +484,12 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const response = await fetch(`/api/media?id=${id}`, {
-        method: "DELETE",
+      const response = await fetch("/api/media/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
       });
 
       if (!response.ok) {
@@ -571,8 +575,12 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const response = await fetch(`/api/media?id=${id}`, {
-        method: "DELETE",
+      const response = await fetch("/api/media/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
       });
 
       if (!response.ok) {
