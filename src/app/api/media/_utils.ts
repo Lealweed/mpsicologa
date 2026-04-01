@@ -8,14 +8,14 @@ const VIDEO_CATEGORY_PREFIX = "video:";
 export type MediaKind = "image" | "video";
 
 export type SiteMediaRow = {
-  id: number;
+  id: string;
   title: string;
   category: string;
   url: string;
 };
 
 export type MediaApiItem = {
-  id: number;
+  id: string;
   title: string;
   category: string;
   url: string;

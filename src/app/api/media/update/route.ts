@@ -9,23 +9,23 @@ import {
 } from "../_utils";
 
 type UpdateMediaPayload = {
-  id?: number;
+  id?: string;
   title?: string;
   category?: string;
   kind?: MediaKind;
   url?: string;
 };
 
-function normalizeMediaId(raw: unknown): number | null {
-  const id = Number(raw);
-  return Number.isInteger(id) && id > 0 ? id : null;
+function normalizeMediaId(raw: unknown): string | null {
+  const id = String(raw ?? "").trim();
+  return id ? id : null;
 }
 
 function inferKindFromCategory(category: string): MediaKind {
   return category.startsWith("video:") ? "video" : "image";
 }
 
-async function getMediaRowById(id: number) {
+async function getMediaRowById(id: string) {
   const supabaseAdmin = getSupabaseAdmin();
   const { data, error } = await supabaseAdmin
     .from("site_media")
@@ -42,7 +42,7 @@ async function getMediaRowById(id: number) {
 
 export async function POST(request: Request) {
   let body: UpdateMediaPayload = {};
-  let mediaId: number | null = null;
+  let mediaId: string | null = null;
 
   try {
     try {

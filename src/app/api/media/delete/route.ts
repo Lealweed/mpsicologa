@@ -3,15 +3,15 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { removeMediaFile, type SiteMediaRow } from "../_utils";
 
 type DeleteMediaPayload = {
-  id?: number;
+  id?: string;
 };
 
-function normalizeMediaId(raw: unknown): number | null {
-  const id = Number(raw);
-  return Number.isInteger(id) && id > 0 ? id : null;
+function normalizeMediaId(raw: unknown): string | null {
+  const id = String(raw ?? "").trim();
+  return id ? id : null;
 }
 
-async function getMediaRowById(id: number) {
+async function getMediaRowById(id: string) {
   const supabaseAdmin = getSupabaseAdmin();
   const { data, error } = await supabaseAdmin
     .from("site_media")
@@ -28,7 +28,7 @@ async function getMediaRowById(id: number) {
 
 export async function POST(request: Request) {
   let body: DeleteMediaPayload = {};
-  let mediaId: number | null = null;
+  let mediaId: string | null = null;
 
   try {
     try {

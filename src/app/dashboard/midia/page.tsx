@@ -24,7 +24,7 @@ import { supabase } from "@/lib/supabase/client";
 type MediaKind = "image" | "video";
 
 type MediaApiItem = {
-  id: number;
+  id: string;
   title: string;
   category: string;
   url: string;
@@ -38,14 +38,14 @@ type SignedUploadResponse = {
 };
 
 type ImageItem = {
-  id: number;
+  id: string;
   titulo: string;
   categoria: string;
   url: string;
 };
 
 type VideoItem = {
-  id: number;
+  id: string;
   titulo: string;
   categoria: string;
   url: string;
@@ -66,7 +66,7 @@ type AddVideoForm = {
 };
 
 type EditMediaForm = {
-  id: number | null;
+  id: string;
   kind: MediaKind;
   titulo: string;
   categoria: string;
@@ -75,7 +75,7 @@ type EditMediaForm = {
 const BLANK_IMG: AddImageForm = { titulo: "", categoria: "", file: null };
 const BLANK_VID: AddVideoForm = { titulo: "", categoria: "", file: null };
 const BLANK_EDIT: EditMediaForm = {
-  id: null,
+  id: "",
   kind: "image",
   titulo: "",
   categoria: "",
@@ -179,7 +179,7 @@ async function createMediaRecord(payload: {
 }
 
 async function replaceMediaRecord(
-  id: number,
+  id: string,
   payload: { kind: MediaKind; url: string },
 ) {
   const response = await fetch(`/api/media/update?id=${id}`, {
@@ -198,7 +198,7 @@ async function replaceMediaRecord(
 }
 
 async function updateMediaInfoRecord(payload: {
-  id: number;
+  id: string;
   kind: MediaKind;
   title: string;
   category: string;
@@ -227,8 +227,8 @@ function ImageCard({
 }: {
   img: ImageItem;
   active: boolean;
-  onDelete: (id: number) => void;
-  onReplace: (id: number, file: File) => void;
+  onDelete: (id: string) => void;
+  onReplace: (id: string, file: File) => void;
   onEdit: (item: ImageItem) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -300,8 +300,8 @@ function VideoCard({
 }: {
   vid: VideoItem;
   active: boolean;
-  onDelete: (id: number) => void;
-  onReplace: (id: number, file: File) => void;
+  onDelete: (id: string) => void;
+  onReplace: (id: string, file: File) => void;
   onEdit: (item: VideoItem) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -485,7 +485,7 @@ export default function MidiaPage() {
     }
   }
 
-  async function handleDeleteImagem(id: number) {
+  async function handleDeleteImagem(id: string) {
     setLoading(true);
     setErrorMessage("");
 
@@ -514,7 +514,7 @@ export default function MidiaPage() {
     }
   }
 
-  async function handleReplaceImagem(id: number, file: File) {
+  async function handleReplaceImagem(id: string, file: File) {
     setLoading(true);
     setErrorMessage("");
 
@@ -576,7 +576,7 @@ export default function MidiaPage() {
     }
   }
 
-  async function handleDeleteVideo(id: number) {
+  async function handleDeleteVideo(id: string) {
     setLoading(true);
     setErrorMessage("");
 
@@ -605,7 +605,7 @@ export default function MidiaPage() {
     }
   }
 
-  async function handleReplaceVideo(id: number, file: File) {
+  async function handleReplaceVideo(id: string, file: File) {
     setLoading(true);
     setErrorMessage("");
 
@@ -655,7 +655,7 @@ export default function MidiaPage() {
   async function handleSaveEdit(event: React.FormEvent) {
     event.preventDefault();
 
-    if (!editForm.id) {
+    if (!editForm.id.trim()) {
       return;
     }
 
