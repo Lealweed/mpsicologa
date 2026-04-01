@@ -38,3 +38,5 @@ dist/
 # Others
 .idea/
 *.swp
+.vercel
+.env*.local

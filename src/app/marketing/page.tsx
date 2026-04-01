@@ -177,7 +177,7 @@ const WHATSAPP_MSG = encodeURIComponent(
 );
 const WHATSAPP_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
 const INSTAGRAM_HREF = "https://www.instagram.com/psico_mayararocha/";
-const COURSE_HREF = "https://docs.google.com/forms/d/e/1FAIpQLSfgQDLLYHLVlUcBt56TVXt-Cm97miWsafPtUaBQaQq7RUuf5A/viewform?usp=publish-editor";
+const COURSE_HREF = "/curso";
 const PAYMENT_HREF = "https://pag.ae/81CsteQB1";
 
 // ── Icons (inline SVG) ────────────────────────────────────────────────────────
@@ -590,8 +590,6 @@ function CourseSection() {
           <div className={styles.ctaRow} style={{ marginTop: 24 }}>
             <a
               href={COURSE_HREF}
-              target="_blank"
-              rel="noopener noreferrer"
               className={styles.btnPrimary}
             >
               <IconAward />
