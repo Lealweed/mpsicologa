@@ -11,8 +11,10 @@ type Sessao = {
   hora: string;
   paciente: string;
   tipo: string;
+  canal: string;
   status: string;
   initials: string;
+  observacoes: string;
 };
 
 type AgendaForm = {
@@ -21,6 +23,8 @@ type AgendaForm = {
   hora: string;
   tipo: string;
   canal: string;
+  status: string;
+  observacoes: string;
 };
 
 const INITIAL: Sessao[] = [];
@@ -29,9 +33,17 @@ const BLANK: AgendaForm = {
   paciente: "",
   data: "",
   hora: "",
-  tipo: "TCC Online",
+  tipo: "TCC Individual",
   canal: "video",
+  status: "Pendente",
+  observacoes: "",
 };
+
+const todayLabel = new Date().toLocaleDateString("pt-BR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
 
 export default function AgendaPage() {
   const [sessoes, setSessoes] = useState<Sessao[]>(INITIAL);
@@ -53,12 +65,14 @@ export default function AgendaPage() {
     setSessoes((prev) => [
       ...prev,
       {
-        id: prev.length + 1,
+        id: Date.now(),
         hora: form.hora,
         paciente: form.paciente,
         tipo: form.tipo,
-        status: "Pendente",
+        canal: form.canal,
+        status: form.status,
         initials,
+        observacoes: form.observacoes,
       },
     ]);
     setModalOpen(false);
@@ -76,7 +90,7 @@ export default function AgendaPage() {
     <div>
       <PageHeader
         title="Agenda"
-        subtitle="Sessões de hoje, 25 de março de 2026"
+        subtitle={`Sessões organizadas para ${todayLabel}`}
         actions={newBtn}
       />
 
@@ -85,7 +99,7 @@ export default function AgendaPage() {
           <div className={styles.agendaItem}>
             <div className={styles.agendaInfo}>
               <div className={styles.agendaPaciente}>Nenhum agendamento cadastrado.</div>
-              <div className={styles.agendaTipo}>Use o botao Novo Agendamento para comecar.</div>
+              <div className={styles.agendaTipo}>Use o botão Novo Agendamento para começar.</div>
             </div>
           </div>
         ) : (
@@ -97,7 +111,13 @@ export default function AgendaPage() {
                 <div className={styles.agendaPaciente}>{item.paciente}</div>
                 <div className={styles.agendaTipo}>
                   <Video size={11} strokeWidth={2} />
-                  {item.tipo}
+                  {(item.canal === "video"
+                    ? "Vídeo"
+                    : item.canal === "presencial"
+                      ? "Presencial"
+                      : item.canal === "telefone"
+                        ? "Telefone"
+                        : "WhatsApp") + ` · ${item.tipo}`}
                 </div>
               </div>
               <span
@@ -119,10 +139,12 @@ export default function AgendaPage() {
         )}
       </div>
 
-      {/* Modal */}
       <Modal
         isOpen={modalOpen}
-        onClose={() => { setModalOpen(false); setForm(BLANK); }}
+        onClose={() => {
+          setModalOpen(false);
+          setForm(BLANK);
+        }}
         title="Novo Agendamento"
       >
         <form onSubmit={handleSubmit}>
@@ -158,7 +180,8 @@ export default function AgendaPage() {
             <label>
               Tipo de sessão
               <select value={form.tipo} onChange={(e) => update("tipo", e.target.value)}>
-                <option>TCC Online</option>
+                <option>TCC Individual</option>
+                <option>Terapia de Casal</option>
                 <option>Laudo Bariátrico</option>
                 <option>Consultoria B2B</option>
                 <option>Acompanhamento</option>
@@ -169,12 +192,37 @@ export default function AgendaPage() {
               <select value={form.canal} onChange={(e) => update("canal", e.target.value)}>
                 <option value="video">Vídeo</option>
                 <option value="presencial">Presencial</option>
+                <option value="telefone">Telefone</option>
+                <option value="whatsapp">WhatsApp</option>
               </select>
+            </label>
+            <label>
+              Status
+              <select value={form.status} onChange={(e) => update("status", e.target.value)}>
+                <option>Pendente</option>
+                <option>Confirmado</option>
+                <option>Remarcado</option>
+              </select>
+            </label>
+            <label className={styles.formSpan2}>
+              Observações
+              <textarea
+                value={form.observacoes}
+                onChange={(e) => update("observacoes", e.target.value)}
+                placeholder="Informações importantes sobre a sessão"
+                rows={3}
+              />
             </label>
           </div>
           <div className={styles.formActions}>
-            <button type="button" className={styles.btnSecondary}
-              onClick={() => { setModalOpen(false); setForm(BLANK); }}>
+            <button
+              type="button"
+              className={styles.btnSecondary}
+              onClick={() => {
+                setModalOpen(false);
+                setForm(BLANK);
+              }}
+            >
               Cancelar
             </button>
             <button type="submit" className={styles.btnPrimary}>

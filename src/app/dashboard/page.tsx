@@ -19,8 +19,16 @@ import styles from "./page.module.css";
 type PacienteForm = {
   nome: string;
   email: string;
+  whatsapp: string;
   telefone: string;
+  endereco: string;
+  sexo: string;
+  idade: string;
+  dataNascimento: string;
+  numeroSus: string;
+  convenio: string;
   plano: string;
+  observacoes: string;
 };
 type AgendaForm = {
   paciente: string;
@@ -28,6 +36,8 @@ type AgendaForm = {
   hora: string;
   tipo: string;
   canal: string;
+  status: string;
+  observacoes: string;
 };
 type Session = {
   nome: string;
@@ -35,15 +45,31 @@ type Session = {
   hora: string;
   status: string;
   initials: string;
+  canal: string;
 };
 
-const BLANK_P: PacienteForm = { nome: "", email: "", telefone: "", plano: "" };
+const BLANK_P: PacienteForm = {
+  nome: "",
+  email: "",
+  whatsapp: "",
+  telefone: "",
+  endereco: "",
+  sexo: "",
+  idade: "",
+  dataNascimento: "",
+  numeroSus: "",
+  convenio: "",
+  plano: "",
+  observacoes: "",
+};
 const BLANK_A: AgendaForm = {
   paciente: "",
   data: "",
   hora: "",
-  tipo: "TCC Online",
+  tipo: "TCC Individual",
   canal: "video",
+  status: "Pendente",
+  observacoes: "",
 };
 
 const INITIAL_SESSIONS: Session[] = [];
@@ -62,12 +88,14 @@ export default function DashboardOverview() {
 
   const [cadastrarOpen, setCadastrarOpen] = useState(false);
   const [agendaOpen, setAgendaOpen] = useState(false);
+  const [patientCount, setPatientCount] = useState(0);
   const [pForm, setPForm] = useState<PacienteForm>(BLANK_P);
   const [aForm, setAForm] = useState<AgendaForm>(BLANK_A);
   const [sessions, setSessions] = useState<Session[]>(INITIAL_SESSIONS);
 
   function handleCadastrar(e: React.FormEvent) {
     e.preventDefault();
+    setPatientCount((prev) => prev + 1);
     setCadastrarOpen(false);
     setPForm(BLANK_P);
   }
@@ -82,7 +110,14 @@ export default function DashboardOverview() {
       .toUpperCase();
     setSessions((prev) => [
       ...prev,
-      { nome: aForm.paciente, tipo: aForm.tipo, hora: aForm.hora, status: "Pendente", initials },
+      {
+        nome: aForm.paciente,
+        tipo: aForm.tipo,
+        hora: aForm.hora,
+        status: aForm.status,
+        initials,
+        canal: aForm.canal,
+      },
     ]);
     setAgendaOpen(false);
     setAForm(BLANK_A);
@@ -97,7 +132,6 @@ export default function DashboardOverview() {
 
   return (
     <div className={styles.page}>
-      {/* ── Header ── */}
       <header className={styles.header}>
         <div>
           <h1 className={styles.greeting}>Olá, {firstName} 👋</h1>
@@ -123,7 +157,6 @@ export default function DashboardOverview() {
         </div>
       </header>
 
-      {/* ── Stat cards ── */}
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statCardHeader}>
@@ -145,8 +178,10 @@ export default function DashboardOverview() {
               <Users size={17} />
             </div>
           </div>
-          <div className={styles.statValue}>0</div>
-          <p className={styles.statDesc}>Sem pacientes cadastrados ainda</p>
+          <div className={styles.statValue}>{patientCount}</div>
+          <p className={styles.statDesc}>
+            {patientCount === 0 ? "Sem pacientes cadastrados ainda" : `${patientCount} cadastrado(s) nesta sessão`}
+          </p>
         </div>
 
         <div className={styles.statCard}>
@@ -157,11 +192,10 @@ export default function DashboardOverview() {
             </div>
           </div>
           <div className={styles.statValue}>R$&nbsp;0,00</div>
-          <p className={styles.statDesc}>Sem lancamentos financeiros</p>
+          <p className={styles.statDesc}>Sem lançamentos financeiros</p>
         </div>
       </div>
 
-      {/* ── Bento: chart + sessions ── */}
       <div className={styles.bentoGrid}>
         <SessionsChart />
 
@@ -174,7 +208,7 @@ export default function DashboardOverview() {
           <div className={styles.sessionsList}>
             {sessions.length === 0 ? (
               <div className={styles.sessionsEmpty}>
-                Nenhuma sessao cadastrada ainda.
+                Nenhuma sessão cadastrada ainda.
               </div>
             ) : (
               sessions.map((ag, i) => (
@@ -182,7 +216,15 @@ export default function DashboardOverview() {
                   <div className={styles.sessionAvatar}>{ag.initials}</div>
                   <div className={styles.sessionInfo}>
                     <div className={styles.sessionName}>{ag.nome}</div>
-                    <div className={styles.sessionType}>{ag.tipo}</div>
+                    <div className={styles.sessionType}>
+                      {(ag.canal === "video"
+                        ? "Vídeo"
+                        : ag.canal === "presencial"
+                          ? "Presencial"
+                          : ag.canal === "telefone"
+                            ? "Telefone"
+                            : "WhatsApp") + ` · ${ag.tipo}`}
+                    </div>
                   </div>
                   <div className={styles.sessionMeta}>
                     <div className={styles.sessionTime}>{ag.hora || "—"}</div>
@@ -208,15 +250,17 @@ export default function DashboardOverview() {
         </section>
       </div>
 
-      {/* ── Modal: Cadastrar Paciente ── */}
       <Modal
         isOpen={cadastrarOpen}
-        onClose={() => { setCadastrarOpen(false); setPForm(BLANK_P); }}
+        onClose={() => {
+          setCadastrarOpen(false);
+          setPForm(BLANK_P);
+        }}
         title="Cadastrar Paciente"
       >
         <form onSubmit={handleCadastrar}>
           <div className={styles.formGrid}>
-            <label>
+            <label className={styles.formSpan2}>
               Nome completo
               <input
                 type="text"
@@ -237,7 +281,17 @@ export default function DashboardOverview() {
               />
             </label>
             <label>
-              Telefone
+              WhatsApp
+              <input
+                type="tel"
+                value={pForm.whatsapp}
+                onChange={(e) => updateP("whatsapp", e.target.value)}
+                placeholder="(00) 00000-0000"
+                required
+              />
+            </label>
+            <label>
+              Telefone adicional
               <input
                 type="tel"
                 value={pForm.telefone}
@@ -246,37 +300,105 @@ export default function DashboardOverview() {
               />
             </label>
             <label>
-              Plano
-              <select
-                value={pForm.plano}
-                onChange={(e) => updateP("plano", e.target.value)}
-              >
+              Sexo
+              <select value={pForm.sexo} onChange={(e) => updateP("sexo", e.target.value)}>
                 <option value="">Selecionar...</option>
-                <option>TCC Mensal</option>
-                <option>Bariátrico</option>
-                <option>Acompanhamento</option>
+                <option>Feminino</option>
+                <option>Masculino</option>
+                <option>Não binário</option>
+                <option>Prefere não informar</option>
               </select>
+            </label>
+            <label>
+              Idade
+              <input
+                type="number"
+                min="0"
+                value={pForm.idade}
+                onChange={(e) => updateP("idade", e.target.value)}
+                placeholder="Ex: 34"
+              />
+            </label>
+            <label>
+              Data de nascimento
+              <input
+                type="date"
+                value={pForm.dataNascimento}
+                onChange={(e) => updateP("dataNascimento", e.target.value)}
+              />
+            </label>
+            <label>
+              Número do SUS
+              <input
+                type="text"
+                value={pForm.numeroSus}
+                onChange={(e) => updateP("numeroSus", e.target.value)}
+                placeholder="000 0000 0000 0000"
+              />
+            </label>
+            <label>
+              Convênio
+              <input
+                type="text"
+                value={pForm.convenio}
+                onChange={(e) => updateP("convenio", e.target.value)}
+                placeholder="Nome do convênio"
+              />
+            </label>
+            <label>
+              Serviço / Plano
+              <select value={pForm.plano} onChange={(e) => updateP("plano", e.target.value)}>
+                <option value="">Selecionar...</option>
+                <option>TCC Individual</option>
+                <option>Terapia de Casal</option>
+                <option>Laudo Bariátrico</option>
+                <option>Acompanhamento</option>
+                <option>Convênio</option>
+              </select>
+            </label>
+            <label className={styles.formSpan2}>
+              Endereço
+              <textarea
+                value={pForm.endereco}
+                onChange={(e) => updateP("endereco", e.target.value)}
+                placeholder="Rua, número, bairro, cidade e CEP"
+                rows={3}
+              />
+            </label>
+            <label className={styles.formSpan2}>
+              Observações
+              <textarea
+                value={pForm.observacoes}
+                onChange={(e) => updateP("observacoes", e.target.value)}
+                placeholder="Anotações iniciais, observações clínicas ou administrativas"
+                rows={4}
+              />
             </label>
           </div>
           <div className={styles.formActions}>
             <button
               type="button"
               className={styles.btnSecondary}
-              onClick={() => { setCadastrarOpen(false); setPForm(BLANK_P); }}
+              onClick={() => {
+                setCadastrarOpen(false);
+                setPForm(BLANK_P);
+              }}
             >
               Cancelar
             </button>
             <button type="submit" className={styles.btnPrimary}>
-              Cadastrar
+              Salvar paciente
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* ── Modal: Novo Agendamento ── */}
       <Modal
         isOpen={agendaOpen}
-        onClose={() => { setAgendaOpen(false); setAForm(BLANK_A); }}
+        onClose={() => {
+          setAgendaOpen(false);
+          setAForm(BLANK_A);
+        }}
         title="Novo Agendamento"
       >
         <form onSubmit={handleNovoAgendamento}>
@@ -311,11 +433,9 @@ export default function DashboardOverview() {
             </label>
             <label>
               Tipo de sessão
-              <select
-                value={aForm.tipo}
-                onChange={(e) => updateA("tipo", e.target.value)}
-              >
-                <option>TCC Online</option>
+              <select value={aForm.tipo} onChange={(e) => updateA("tipo", e.target.value)}>
+                <option>TCC Individual</option>
+                <option>Terapia de Casal</option>
                 <option>Laudo Bariátrico</option>
                 <option>Consultoria B2B</option>
                 <option>Acompanhamento</option>
@@ -323,20 +443,39 @@ export default function DashboardOverview() {
             </label>
             <label>
               Canal
-              <select
-                value={aForm.canal}
-                onChange={(e) => updateA("canal", e.target.value)}
-              >
+              <select value={aForm.canal} onChange={(e) => updateA("canal", e.target.value)}>
                 <option value="video">Vídeo</option>
                 <option value="presencial">Presencial</option>
+                <option value="telefone">Telefone</option>
+                <option value="whatsapp">WhatsApp</option>
               </select>
+            </label>
+            <label>
+              Status
+              <select value={aForm.status} onChange={(e) => updateA("status", e.target.value)}>
+                <option>Pendente</option>
+                <option>Confirmado</option>
+                <option>Remarcado</option>
+              </select>
+            </label>
+            <label className={styles.formSpan2}>
+              Observações
+              <textarea
+                value={aForm.observacoes}
+                onChange={(e) => updateA("observacoes", e.target.value)}
+                placeholder="Informações adicionais sobre a sessão"
+                rows={3}
+              />
             </label>
           </div>
           <div className={styles.formActions}>
             <button
               type="button"
               className={styles.btnSecondary}
-              onClick={() => { setAgendaOpen(false); setAForm(BLANK_A); }}
+              onClick={() => {
+                setAgendaOpen(false);
+                setAForm(BLANK_A);
+              }}
             >
               Cancelar
             </button>
