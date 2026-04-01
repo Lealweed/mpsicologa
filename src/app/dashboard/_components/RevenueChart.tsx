@@ -13,12 +13,12 @@ import {
 import styles from "./RevenueChart.module.css";
 
 const data = [
-  { mes: "Out", receita: 6200, meta: 8000 },
-  { mes: "Nov", receita: 7100, meta: 8000 },
-  { mes: "Dez", receita: 9200, meta: 8000 },
-  { mes: "Jan", receita: 7800, meta: 8500 },
-  { mes: "Fev", receita: 8900, meta: 8500 },
-  { mes: "Mar", receita: 8450, meta: 8500 },
+  { mes: "Out", receita: 0, meta: 0 },
+  { mes: "Nov", receita: 0, meta: 0 },
+  { mes: "Dez", receita: 0, meta: 0 },
+  { mes: "Jan", receita: 0, meta: 0 },
+  { mes: "Fev", receita: 0, meta: 0 },
+  { mes: "Mar", receita: 0, meta: 0 },
 ];
 
 function fmt(v: number) {

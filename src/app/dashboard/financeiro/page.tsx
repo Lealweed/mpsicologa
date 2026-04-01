@@ -24,11 +24,7 @@ type LancamentoForm = {
   status: "Pago" | "Pendente";
 };
 
-const INITIAL: Cobranca[] = [
-  { id: 1, paciente: "Ana Souza",   plano: "TCC Mensal",    data: "01/03/2026", valor: 400, status: "Pago" },
-  { id: 2, paciente: "Bruno Lima",  plano: "Bariátrico",    data: "05/03/2026", valor: 600, status: "Pendente" },
-  { id: 3, paciente: "Carla Mendes",plano: "Acompanhamento",data: "10/03/2026", valor: 300, status: "Pago" },
-];
+const INITIAL: Cobranca[] = [];
 
 const BLANK: LancamentoForm = {
   paciente: "",
@@ -132,19 +128,27 @@ export default function FinanceiroPage() {
             </tr>
           </thead>
           <tbody>
-            {cobrancas.map((c) => (
-              <tr key={c.id}>
-                <td className={styles.tdBold}>{c.paciente}</td>
-                <td className={styles.tdMuted}>{c.plano}</td>
-                <td className={styles.tdMuted}>{c.data}</td>
-                <td className={styles.tdBold}>R$ {fmt(c.valor)}</td>
-                <td>
-                  <span className={c.status === "Pago" ? styles.statusPago : styles.statusPendente}>
-                    {c.status}
-                  </span>
+            {cobrancas.length === 0 ? (
+              <tr>
+                <td className={styles.tdMuted} colSpan={5}>
+                  Nenhum lancamento financeiro cadastrado ainda.
                 </td>
               </tr>
-            ))}
+            ) : (
+              cobrancas.map((c) => (
+                <tr key={c.id}>
+                  <td className={styles.tdBold}>{c.paciente}</td>
+                  <td className={styles.tdMuted}>{c.plano}</td>
+                  <td className={styles.tdMuted}>{c.data}</td>
+                  <td className={styles.tdBold}>R$ {fmt(c.valor)}</td>
+                  <td>
+                    <span className={c.status === "Pago" ? styles.statusPago : styles.statusPendente}>
+                      {c.status}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

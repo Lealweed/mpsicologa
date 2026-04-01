@@ -13,12 +13,12 @@ import {
 import styles from "./SessionsChart.module.css";
 
 const data = [
-  { dia: "Seg", sessoes: 5 },
-  { dia: "Ter", sessoes: 8 },
-  { dia: "Qua", sessoes: 6 },
-  { dia: "Qui", sessoes: 9 },
-  { dia: "Sex", sessoes: 4 },
-  { dia: "Sáb", sessoes: 2 },
+  { dia: "Seg", sessoes: 0 },
+  { dia: "Ter", sessoes: 0 },
+  { dia: "Qua", sessoes: 0 },
+  { dia: "Qui", sessoes: 0 },
+  { dia: "Sex", sessoes: 0 },
+  { dia: "Sab", sessoes: 0 },
 ];
 
 function CustomTooltip({

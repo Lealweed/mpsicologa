@@ -193,6 +193,12 @@
 
 .sessionsList { display: flex; flex-direction: column; }
 
+.sessionsEmpty {
+  padding: 1.2rem 1.5rem;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
 .sessionItem {
   display: flex;
   align-items: center;

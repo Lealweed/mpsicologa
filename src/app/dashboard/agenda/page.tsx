@@ -23,11 +23,7 @@ type AgendaForm = {
   canal: string;
 };
 
-const INITIAL: Sessao[] = [
-  { id: 1, hora: "09:00", paciente: "Ana Souza",   tipo: "TCC Online",       status: "Confirmado", initials: "AS" },
-  { id: 2, hora: "10:00", paciente: "Bruno Lima",  tipo: "Laudo Bariátrico", status: "Pendente",   initials: "BL" },
-  { id: 3, hora: "11:30", paciente: "Carla Mendes",tipo: "Acompanhamento",   status: "Confirmado", initials: "CM" },
-];
+const INITIAL: Sessao[] = [];
 
 const BLANK: AgendaForm = {
   paciente: "",
@@ -85,33 +81,42 @@ export default function AgendaPage() {
       />
 
       <div className={styles.agendaCard}>
-        {sessoes.map((item) => (
-          <div key={item.id} className={styles.agendaItem}>
-            <div className={styles.agendaTime}>{item.hora}</div>
-            <div className={styles.agendaAvatar}>{item.initials}</div>
+        {sessoes.length === 0 ? (
+          <div className={styles.agendaItem}>
             <div className={styles.agendaInfo}>
-              <div className={styles.agendaPaciente}>{item.paciente}</div>
-              <div className={styles.agendaTipo}>
-                <Video size={11} strokeWidth={2} />
-                {item.tipo}
-              </div>
+              <div className={styles.agendaPaciente}>Nenhum agendamento cadastrado.</div>
+              <div className={styles.agendaTipo}>Use o botao Novo Agendamento para comecar.</div>
             </div>
-            <span
-              className={`${styles.agendaStatus} ${
-                item.status === "Confirmado"
-                  ? styles.statusConfirmado
-                  : styles.statusPendente
-              }`}
-            >
-              {item.status === "Confirmado" ? (
-                <CheckCircle2 size={11} />
-              ) : (
-                <Clock size={11} />
-              )}
-              {item.status}
-            </span>
           </div>
-        ))}
+        ) : (
+          sessoes.map((item) => (
+            <div key={item.id} className={styles.agendaItem}>
+              <div className={styles.agendaTime}>{item.hora}</div>
+              <div className={styles.agendaAvatar}>{item.initials}</div>
+              <div className={styles.agendaInfo}>
+                <div className={styles.agendaPaciente}>{item.paciente}</div>
+                <div className={styles.agendaTipo}>
+                  <Video size={11} strokeWidth={2} />
+                  {item.tipo}
+                </div>
+              </div>
+              <span
+                className={`${styles.agendaStatus} ${
+                  item.status === "Confirmado"
+                    ? styles.statusConfirmado
+                    : styles.statusPendente
+                }`}
+              >
+                {item.status === "Confirmado" ? (
+                  <CheckCircle2 size={11} />
+                ) : (
+                  <Clock size={11} />
+                )}
+                {item.status}
+              </span>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Modal */}

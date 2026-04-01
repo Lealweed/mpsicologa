@@ -22,11 +22,7 @@ type PacienteForm = {
   plano: string;
 };
 
-const INITIAL: Paciente[] = [
-  { id: 1, nome: "Ana Souza",    email: "ana@email.com",   telefone: "(11) 99999-0001", plano: "TCC Mensal",    initials: "AS" },
-  { id: 2, nome: "Bruno Lima",   email: "bruno@email.com", telefone: "(21) 98888-0002", plano: "Bariátrico",    initials: "BL" },
-  { id: 3, nome: "Carla Mendes", email: "carla@email.com", telefone: "(31) 97777-0003", plano: "Acompanhamento",initials: "CM" },
-];
+const INITIAL: Paciente[] = [];
 
 const BLANK: PacienteForm = { nome: "", email: "", telefone: "", plano: "" };
 
@@ -87,23 +83,31 @@ export default function PacientesPage() {
             </tr>
           </thead>
           <tbody>
-            {pacientes.map((p) => (
-              <tr
-                key={p.id}
-                className={styles.pacienteRow}
-                onClick={() => setSelected(p.id)}
-              >
-                <td>
-                  <div className={styles.pacienteCell}>
-                    <div className={styles.pacienteAvatar}>{p.initials}</div>
-                    <span className={styles.pacienteNome}>{p.nome}</span>
-                  </div>
+            {pacientes.length === 0 ? (
+              <tr>
+                <td className={styles.tdMuted} colSpan={4}>
+                  Nenhum paciente cadastrado ainda.
                 </td>
-                <td className={styles.tdMuted}>{p.email}</td>
-                <td className={styles.tdMuted}>{p.telefone}</td>
-                <td><span className={styles.planoBadge}>{p.plano}</span></td>
               </tr>
-            ))}
+            ) : (
+              pacientes.map((p) => (
+                <tr
+                  key={p.id}
+                  className={styles.pacienteRow}
+                  onClick={() => setSelected(p.id)}
+                >
+                  <td>
+                    <div className={styles.pacienteCell}>
+                      <div className={styles.pacienteAvatar}>{p.initials}</div>
+                      <span className={styles.pacienteNome}>{p.nome}</span>
+                    </div>
+                  </td>
+                  <td className={styles.tdMuted}>{p.email}</td>
+                  <td className={styles.tdMuted}>{p.telefone}</td>
+                  <td><span className={styles.planoBadge}>{p.plano}</span></td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

@@ -46,11 +46,7 @@ const BLANK_A: AgendaForm = {
   canal: "video",
 };
 
-const INITIAL_SESSIONS: Session[] = [
-  { nome: "Mariana Silva", tipo: "TCC Online", hora: "14:00", status: "Confirmado", initials: "MS" },
-  { nome: "Carlos Eduardo", tipo: "Laudo Bariátrico", hora: "15:30", status: "Pendente", initials: "CE" },
-  { nome: "RH – Tech Corp", tipo: "Consultoria B2B", hora: "17:00", status: "Confirmado", initials: "TC" },
-];
+const INITIAL_SESSIONS: Session[] = [];
 
 const todayLabel = new Date().toLocaleDateString("pt-BR", {
   weekday: "long",
@@ -136,8 +132,10 @@ export default function DashboardOverview() {
               <CalendarDays size={17} />
             </div>
           </div>
-          <div className={styles.statValue}>{sessions.length + 1}</div>
-          <p className={styles.statDesc}>2 presenciais · 2 online</p>
+          <div className={styles.statValue}>{sessions.length}</div>
+          <p className={styles.statDesc}>
+            {sessions.length === 0 ? "Sem consultas cadastradas" : `${sessions.length} agendadas`}
+          </p>
         </div>
 
         <div className={styles.statCard}>
@@ -147,8 +145,8 @@ export default function DashboardOverview() {
               <Users size={17} />
             </div>
           </div>
-          <div className={styles.statValue}>32</div>
-          <p className={styles.statDesc}>+3 novos esta semana</p>
+          <div className={styles.statValue}>0</div>
+          <p className={styles.statDesc}>Sem pacientes cadastrados ainda</p>
         </div>
 
         <div className={styles.statCard}>
@@ -158,8 +156,8 @@ export default function DashboardOverview() {
               <Wallet size={17} />
             </div>
           </div>
-          <div className={styles.statValue}>R$&nbsp;8.450</div>
-          <p className={styles.statDesc}>R$ 1.200 a receber</p>
+          <div className={styles.statValue}>R$&nbsp;0,00</div>
+          <p className={styles.statDesc}>Sem lancamentos financeiros</p>
         </div>
       </div>
 
@@ -174,32 +172,38 @@ export default function DashboardOverview() {
           </div>
 
           <div className={styles.sessionsList}>
-            {sessions.map((ag, i) => (
-              <div key={i} className={styles.sessionItem}>
-                <div className={styles.sessionAvatar}>{ag.initials}</div>
-                <div className={styles.sessionInfo}>
-                  <div className={styles.sessionName}>{ag.nome}</div>
-                  <div className={styles.sessionType}>{ag.tipo}</div>
-                </div>
-                <div className={styles.sessionMeta}>
-                  <div className={styles.sessionTime}>{ag.hora || "—"}</div>
-                  <span
-                    className={`${styles.sessionStatus} ${
-                      ag.status === "Confirmado"
-                        ? styles.statusConfirmado
-                        : styles.statusPendente
-                    }`}
-                  >
-                    {ag.status === "Confirmado" ? (
-                      <CheckCircle2 size={11} />
-                    ) : (
-                      <Clock size={11} />
-                    )}
-                    {ag.status}
-                  </span>
-                </div>
+            {sessions.length === 0 ? (
+              <div className={styles.sessionsEmpty}>
+                Nenhuma sessao cadastrada ainda.
               </div>
-            ))}
+            ) : (
+              sessions.map((ag, i) => (
+                <div key={i} className={styles.sessionItem}>
+                  <div className={styles.sessionAvatar}>{ag.initials}</div>
+                  <div className={styles.sessionInfo}>
+                    <div className={styles.sessionName}>{ag.nome}</div>
+                    <div className={styles.sessionType}>{ag.tipo}</div>
+                  </div>
+                  <div className={styles.sessionMeta}>
+                    <div className={styles.sessionTime}>{ag.hora || "—"}</div>
+                    <span
+                      className={`${styles.sessionStatus} ${
+                        ag.status === "Confirmado"
+                          ? styles.statusConfirmado
+                          : styles.statusPendente
+                      }`}
+                    >
+                      {ag.status === "Confirmado" ? (
+                        <CheckCircle2 size={11} />
+                      ) : (
+                        <Clock size={11} />
+                      )}
+                      {ag.status}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
       </div>
