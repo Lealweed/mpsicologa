@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
   mapRowToMediaItem,
@@ -12,6 +12,13 @@ type UpdateMediaPayload = {
   kind: MediaKind;
   url: string;
 };
+
+function extractIdFromUrl(request: NextRequest): number | null {
+  const segments = request.nextUrl.pathname.split("/");
+  const last = segments[segments.length - 1];
+  const id = Number(last);
+  return Number.isNaN(id) ? null : id;
+}
 
 async function getMediaRow(id: number) {
   const supabaseAdmin = getSupabaseAdmin();
@@ -70,16 +77,12 @@ async function parseUpdatePayload(
 }
 
 export async function DELETE(
-  _request: Request,
-  context: { params: Promise<{ id: string }> | { id: string } },
+  request: NextRequest,
 ) {
   try {
-    const resolvedParams =
-      context.params instanceof Promise ? await context.params : context.params;
-    const id = resolvedParams.id;
-    const mediaId = Number(id);
+    const mediaId = extractIdFromUrl(request);
 
-    if (!id || Number.isNaN(mediaId)) {
+    if (mediaId === null) {
       return NextResponse.json({ error: "ID de midia invalido." }, { status: 400 });
     }
 
@@ -108,16 +111,12 @@ export async function DELETE(
 }
 
 export async function PATCH(
-  request: Request,
-  context: { params: Promise<{ id: string }> | { id: string } },
+  request: NextRequest,
 ) {
   try {
-    const resolvedParams =
-      context.params instanceof Promise ? await context.params : context.params;
-    const id = resolvedParams.id;
-    const mediaId = Number(id);
+    const mediaId = extractIdFromUrl(request);
 
-    if (!id || Number.isNaN(mediaId)) {
+    if (mediaId === null) {
       return NextResponse.json({ error: "ID de midia invalido." }, { status: 400 });
     }
 
