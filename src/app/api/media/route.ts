@@ -167,17 +167,19 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const contentType = request.headers.get("content-type") ?? "";
-    let mediaId: number | null = null;
-
-    if (contentType.includes("application/json")) {
-      const body = (await request.json()) as DeleteMediaPayload;
-      mediaId = normalizeMediaId(body.id);
-    }
+    const url = new URL(request.url);
+    let mediaId = normalizeMediaId(url.searchParams.get("id"));
 
     if (mediaId === null) {
-      const queryId = new URL(request.url).searchParams.get("id");
-      mediaId = normalizeMediaId(queryId);
+      const contentType = request.headers.get("content-type") ?? "";
+
+      if (contentType.includes("application/json")) {
+        const body = (await request.json()) as DeleteMediaPayload;
+        mediaId = normalizeMediaId(body.id);
+      } else if (contentType.includes("multipart/form-data")) {
+        const formData = await request.formData();
+        mediaId = normalizeMediaId(formData.get("id"));
+      }
     }
 
     if (mediaId === null) {

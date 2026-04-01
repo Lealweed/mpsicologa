@@ -484,12 +484,8 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const response = await fetch("/api/media", {
+      const response = await fetch(`/api/media?id=${id}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id }),
       });
 
       if (!response.ok) {
@@ -575,12 +571,8 @@ export default function MidiaPage() {
     setErrorMessage("");
 
     try {
-      const response = await fetch("/api/media", {
+      const response = await fetch(`/api/media?id=${id}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id }),
       });
 
       if (!response.ok) {
