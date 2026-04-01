@@ -177,6 +177,8 @@ const WHATSAPP_MSG = encodeURIComponent(
 );
 const WHATSAPP_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
 const INSTAGRAM_HREF = "https://www.instagram.com/psico_mayararocha/";
+const COURSE_HREF = "https://docs.google.com/forms/d/e/1FAIpQLSfgQDLLYHLVlUcBt56TVXt-Cm97miWsafPtUaBQaQq7RUuf5A/viewform?usp=publish-editor";
+const PAYMENT_HREF = "https://pag.ae/81CsteQB1";
 
 // ── Icons (inline SVG) ────────────────────────────────────────────────────────
 function IconVideo() {
@@ -244,7 +246,7 @@ function HeroSection({ heroImg }: { heroImg: string | null }) {
           </h1>
           <p className={styles.heroSubtitle}>
             Sessões de psicoterapia 100% online com uma escuta acolhedora e personalizada,
-            baseada na Terapia Cognitiva Comportamental. Para você e para empresas.
+            baseada na Terapia Cognitiva Comportamental. Atendimento particular e por convênios.
           </p>
           <div className={styles.ctaRow}>
             <a
@@ -287,7 +289,7 @@ function StatsSection() {
     { number: "100%", label: "Online — atendimento de onde você estiver" },
     { number: "TCC", label: "Terapia Cognitiva Comportamental" },
     { number: "B2B", label: "Também atendemos equipes e empresas" },
-    { number: "Stripe", label: "Pagamento seguro em múltiplas formas" },
+    { number: "Conv.", label: "AMS/PASA · SulAmérica · Particular" },
   ];
 
   return (
@@ -376,18 +378,18 @@ function ServicesSection() {
     {
       icon: <IconVideo />,
       title: "Atendimento Online",
-      desc: "Sessões individuais de psicoterapia 100% online, no conforto da sua casa. Agenda flexível, plataforma segura e uma escuta genuína.",
-      note: "Sessão avulsa ou plano",
+      desc: "Sessões individuais de psicoterapia 100% online, no conforto da sua casa. Agenda flexível, plataforma segura e uma escuta genuína. Atendimento particular e por convênios.",
+      note: "Particular · AMS/PASA · SulAmérica",
       cta: "Agendar sessão",
-      href: "/auth?mode=signup",
+      href: WHATSAPP_HREF,
     },
     {
       icon: <IconCalendar />,
       title: "Planos de Sessões",
-      desc: "Planos personalizados para diferentes ritmos e necessidades, com pagamento facilitado via Stripe e múltiplas formas de pagamento.",
+      desc: "Planos personalizados para diferentes ritmos e necessidades, com pagamento facilitado e múltiplas formas de pagamento. Entre em contato para mais informações.",
       note: "Múltiplos planos disponíveis",
       cta: "Conhecer planos",
-      href: "/auth?mode=signup",
+      href: WHATSAPP_HREF,
     },
     {
       icon: <IconDocument />,
@@ -472,6 +474,173 @@ function VideosSection({ videos }: { videos: MarketingVideos }) {
             />
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Convênios ─────────────────────────────────────────────────────────────────
+function IconShield() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  );
+}
+
+function IconCreditCard() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
+    </svg>
+  );
+}
+
+function IconAward() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="8" r="7" /><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+    </svg>
+  );
+}
+
+function ConveniosSection() {
+  const convenios = [
+    {
+      name: "AMS/PASA",
+      desc: "Plano de saúde dos funcionários e aposentados da Vale e empresas vinculadas.",
+    },
+    {
+      name: "SulAmérica",
+      desc: "Uma das maiores seguradoras do Brasil, com ampla cobertura em saúde mental.",
+    },
+    {
+      name: "Sessão Particular",
+      desc: "Atendimento individualizado com flexibilidade de horários. Entre em contato para mais informações.",
+    },
+  ];
+
+  return (
+    <section id="convenios" className={styles.convenios}>
+      <div className={styles.conveniosInner}>
+        <header className={styles.conveniosHeader}>
+          <span className={styles.eyebrow}>Formas de Atendimento</span>
+          <h2 className={styles.sectionHeading}>
+            Convênios aceitos e atendimento particular
+          </h2>
+          <p className={styles.sectionText}>
+            Para facilitar o seu acesso ao cuidado com a saúde mental, atendo por convênios
+            selecionados e também de forma particular. Entre em contato para verificar
+            disponibilidade e orientações.
+          </p>
+        </header>
+
+        <div className={styles.conveniosGrid}>
+          {convenios.map((c) => (
+            <article key={c.name} className={styles.convenioCard}>
+              <div className={styles.convenioIconWrap} aria-hidden>
+                <IconShield />
+              </div>
+              <h3 className={styles.convenioName}>{c.name}</h3>
+              <p className={styles.convenioDesc}>{c.desc}</p>
+            </article>
+          ))}
+        </div>
+
+        <div className={styles.conveniosCta}>
+          <p className={styles.conveniosCtaText}>
+            Tem dúvidas sobre cobertura ou deseja agendar? Fale diretamente comigo.
+          </p>
+          <a
+            href={WHATSAPP_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.btnPrimary}
+            style={{ fontSize: 14, padding: "13px 24px" }}
+          >
+            <IconWhatsApp />
+            Consultar disponibilidade
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Curso ─────────────────────────────────────────────────────────────────────
+function CourseSection() {
+  return (
+    <section className={styles.course}>
+      <div className={styles.courseGlow} aria-hidden />
+      <div className={styles.courseInner}>
+        <div className={styles.courseContent}>
+          <span className={`${styles.eyebrow} ${styles.eyebrowLight}`}>Formação &amp; Ensino</span>
+          <h2 className={`${styles.sectionHeading} ${styles.sectionHeadingLight}`}>
+            Além do consultório: compartilhando conhecimento.
+          </h2>
+          <p className={`${styles.sectionText} ${styles.sectionTextLight}`}>
+            Como parte do meu compromisso com a disseminação do conhecimento em saúde mental,
+            ministro curso voltado para profissionais e interessados que desejam aprofundar
+            seus conhecimentos na área da psicologia.
+          </p>
+          <p className={`${styles.sectionText} ${styles.sectionTextLight}`} style={{ marginTop: 12 }}>
+            Uma oportunidade de aprendizado com embasamento científico, abordagem prática
+            e a mesma dedicação que trago para cada atendimento.
+          </p>
+          <div className={styles.ctaRow} style={{ marginTop: 24 }}>
+            <a
+              href={COURSE_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.btnPrimary}
+            >
+              <IconAward />
+              Conheça o curso
+            </a>
+          </div>
+        </div>
+        <div className={styles.courseHighlight}>
+          <div className={styles.courseCard}>
+            <div className={styles.courseCardIcon} aria-hidden>
+              <IconAward />
+            </div>
+            <strong className={styles.courseCardTitle}>Curso ministrado por Mayara Rocha</strong>
+            <p className={styles.courseCardText}>
+              Conteúdo desenvolvido com base na prática clínica e fundamentação teórica
+              da Terapia Cognitiva Comportamental.
+            </p>
+            <span className={styles.courseCardBadge}>Inscrições abertas</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Pagamento ─────────────────────────────────────────────────────────────────
+function PaymentSection() {
+  return (
+    <section className={styles.payment}>
+      <div className={styles.paymentInner}>
+        <div className={styles.paymentIconWrap} aria-hidden>
+          <IconCreditCard />
+        </div>
+        <div className={styles.paymentContent}>
+          <h2 className={styles.paymentTitle}>Pagamento online</h2>
+          <p className={styles.paymentText}>
+            Se você já recebeu as orientações de atendimento, pode utilizar o link
+            abaixo para realizar seu pagamento de forma prática e segura.
+          </p>
+        </div>
+        <a
+          href={PAYMENT_HREF}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.btnPrimary}
+          style={{ fontSize: 14, padding: "13px 24px" }}
+        >
+          Realizar pagamento
+        </a>
       </div>
     </section>
   );
@@ -653,6 +822,7 @@ function Footer() {
         <nav className={styles.footerNav} aria-label="Links do rodapé">
           <Link href="/#sobre" className={styles.footerNavLink}>Sobre</Link>
           <Link href="/#servicos" className={styles.footerNavLink}>Serviços</Link>
+          <Link href="/#convenios" className={styles.footerNavLink}>Convênios</Link>
           <Link href="/#empresas" className={styles.footerNavLink}>Empresas</Link>
           <Link href="/#contato" className={styles.footerNavLink}>Contato</Link>
           <a href={INSTAGRAM_HREF} target="_blank" rel="noopener noreferrer" className={styles.footerNavLink}>Instagram</a>
@@ -680,9 +850,12 @@ export default async function MarketingHome() {
       <StatsSection />
       <AboutSection aboutImg={images.Sobre} />
       <ServicesSection />
+      <ConveniosSection />
       <VideosSection videos={videos} />
+      <CourseSection />
       <CorporateSection corporateImg={images.Empresas} />
       <TestimonialsSection />
+      <PaymentSection />
       <ContactSection />
       <Footer />
     </main>
