@@ -41,18 +41,44 @@ async function getMediaRowById(id: number) {
 }
 
 export async function POST(request: Request) {
+  let body: UpdateMediaPayload = {};
+  let mediaId: number | null = null;
+
   try {
-    const body = (await request.json()) as UpdateMediaPayload;
-    const mediaId = normalizeMediaId(body.id);
+    body = (await request.json()) as UpdateMediaPayload;
+    mediaId = normalizeMediaId(body.id);
 
     if (mediaId === null) {
-      return NextResponse.json({ error: "ID de midia invalido." }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "ID de midia invalido.",
+          debug: {
+            operation: "media-update",
+            receivedId: body.id ?? null,
+            normalizedId: mediaId,
+            receivedTitle: body.title ?? null,
+            receivedCategory: body.category ?? null,
+            receivedKind: body.kind ?? null,
+          },
+        },
+        { status: 400 },
+      );
     }
 
     const row = await getMediaRowById(mediaId);
 
     if (!row) {
-      return NextResponse.json({ error: "Midia nao encontrada." }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: "Midia nao encontrada.",
+          debug: {
+            operation: "media-update",
+            receivedId: body.id ?? null,
+            normalizedId: mediaId,
+          },
+        },
+        { status: 404 },
+      );
     }
 
     const nextTitle = typeof body.title === "string" ? body.title.trim() : row.title;
@@ -64,7 +90,21 @@ export async function POST(request: Request) {
 
     if (!nextTitle || !nextCategory || !nextUrl) {
       return NextResponse.json(
-        { error: "Preencha titulo, categoria e URL validos para atualizar." },
+        {
+          error: "Preencha titulo, categoria e URL validos para atualizar.",
+          debug: {
+            operation: "media-update",
+            receivedId: body.id ?? null,
+            normalizedId: mediaId,
+            receivedTitle: body.title ?? null,
+            receivedCategory: body.category ?? null,
+            receivedKind: body.kind ?? null,
+            receivedUrl: body.url ?? null,
+            resolvedTitle: nextTitle,
+            resolvedCategory: nextCategory,
+            resolvedUrl: nextUrl,
+          },
+        },
         { status: 400 },
       );
     }
@@ -86,7 +126,23 @@ export async function POST(request: Request) {
         await removeMediaFile(nextUrl);
       }
 
-      throw new Error(error?.message ?? "Nao foi possivel atualizar os dados da midia.");
+      return NextResponse.json(
+        {
+          error: error?.message ?? "Nao foi possivel atualizar os dados da midia.",
+          debug: {
+            operation: "media-update",
+            receivedId: body.id ?? null,
+            normalizedId: mediaId,
+            code: error?.code ?? null,
+            details: error?.details ?? null,
+            hint: error?.hint ?? null,
+            resolvedTitle: nextTitle,
+            resolvedCategory: nextCategory,
+            resolvedUrl: nextUrl,
+          },
+        },
+        { status: 500 },
+      );
     }
 
     if (nextUrl !== row.url) {
@@ -100,6 +156,20 @@ export async function POST(request: Request) {
         ? error.message
         : "Falha inesperada ao atualizar os dados da midia.";
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: message,
+        debug: {
+          operation: "media-update",
+          receivedId: body.id ?? null,
+          normalizedId: mediaId,
+          receivedTitle: body.title ?? null,
+          receivedCategory: body.category ?? null,
+          receivedKind: body.kind ?? null,
+          receivedUrl: body.url ?? null,
+        },
+      },
+      { status: 500 },
+    );
   }
 }

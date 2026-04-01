@@ -27,25 +27,61 @@ async function getMediaRowById(id: number) {
 }
 
 export async function POST(request: Request) {
+  let body: DeleteMediaPayload = {};
+  let mediaId: number | null = null;
+
   try {
-    const body = (await request.json()) as DeleteMediaPayload;
-    const mediaId = normalizeMediaId(body.id);
+    body = (await request.json()) as DeleteMediaPayload;
+    mediaId = normalizeMediaId(body.id);
 
     if (mediaId === null) {
-      return NextResponse.json({ error: "ID de midia invalido." }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "ID de midia invalido.",
+          debug: {
+            operation: "media-delete",
+            receivedId: body.id ?? null,
+            normalizedId: mediaId,
+          },
+        },
+        { status: 400 },
+      );
     }
 
     const row = await getMediaRowById(mediaId);
 
     if (!row) {
-      return NextResponse.json({ error: "Midia nao encontrada." }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: "Midia nao encontrada.",
+          debug: {
+            operation: "media-delete",
+            receivedId: body.id ?? null,
+            normalizedId: mediaId,
+          },
+        },
+        { status: 404 },
+      );
     }
 
     const supabaseAdmin = getSupabaseAdmin();
     const { error } = await supabaseAdmin.from("site_media").delete().eq("id", mediaId);
 
     if (error) {
-      throw new Error(`Nao foi possivel excluir a midia: ${error.message}`);
+      return NextResponse.json(
+        {
+          error: `Nao foi possivel excluir a midia: ${error.message}`,
+          debug: {
+            operation: "media-delete",
+            receivedId: body.id ?? null,
+            normalizedId: mediaId,
+            code: error.code ?? null,
+            details: error.details ?? null,
+            hint: error.hint ?? null,
+          },
+        },
+        { status: 500 },
+      );
     }
 
     await removeMediaFile(row.url);
@@ -55,6 +91,16 @@ export async function POST(request: Request) {
     const message =
       error instanceof Error ? error.message : "Falha inesperada ao excluir a midia.";
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: message,
+        debug: {
+          operation: "media-delete",
+          receivedId: body.id ?? null,
+          normalizedId: mediaId,
+        },
+      },
+      { status: 500 },
+    );
   }
 }
