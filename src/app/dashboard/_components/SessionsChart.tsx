@@ -12,7 +12,12 @@ import {
 } from "recharts";
 import styles from "./SessionsChart.module.css";
 
-const data = [
+export type SessionsChartPoint = {
+  dia: string;
+  sessoes: number;
+};
+
+const DEFAULT_DATA: SessionsChartPoint[] = [
   { dia: "Seg", sessoes: 0 },
   { dia: "Ter", sessoes: 0 },
   { dia: "Qua", sessoes: 0 },
@@ -41,7 +46,11 @@ function CustomTooltip({
   return null;
 }
 
-export default function SessionsChart() {
+export default function SessionsChart({
+  data = DEFAULT_DATA,
+}: {
+  data?: SessionsChartPoint[];
+}) {
   return (
     <div className={styles.wrapper}>
       <div className={styles.chartHeader}>

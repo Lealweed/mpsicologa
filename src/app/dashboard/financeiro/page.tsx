@@ -1,25 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { TrendingUp, AlertCircle, BadgeCheck, Plus } from "lucide-react";
 import PageHeader from "../_components/PageHeader";
 import Modal from "../_components/Modal";
 import RevenueChart from "../_components/RevenueChart";
+import {
+  fetchDashboardApi,
+  type DashboardFinanceEntry,
+} from "@/lib/dashboard-api";
 import styles from "./financeiro.module.css";
 
 type PaymentStatus = "Pago" | "Pendente" | "Parcial";
 
-type Cobranca = {
-  id: number;
-  paciente: string;
-  plano: string;
-  data: string;
-  valor: number;
-  status: PaymentStatus;
-  formaPagamento: string;
-  referencia: string;
-  observacoes: string;
-};
+type Cobranca = DashboardFinanceEntry;
 
 type LancamentoForm = {
   paciente: string;
@@ -49,10 +43,44 @@ function fmt(value: number) {
   return value.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 }
 
+function formatDisplayDate(value: string) {
+  if (!value) return "—";
+  if (value.includes("/")) return value;
+
+  const date = new Date(`${value}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString("pt-BR");
+}
+
 export default function FinanceiroPage() {
   const [cobrancas, setCobrancas] = useState<Cobranca[]>(INITIAL);
   const [lancamentoOpen, setLancamentoOpen] = useState(false);
   const [form, setForm] = useState<LancamentoForm>(BLANK);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const loadCobrancas = useCallback(async () => {
+    try {
+      setErrorMessage("");
+      const data = await fetchDashboardApi<DashboardFinanceEntry[]>("/api/dashboard/finance");
+      setCobrancas(data);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Não foi possível carregar os lançamentos.",
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadCobrancas();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [loadCobrancas]);
 
   const totalPago = cobrancas
     .filter((c) => c.status === "Pago")
@@ -62,29 +90,64 @@ export default function FinanceiroPage() {
     .reduce((a, c) => a + c.valor, 0);
   const totalGeral = cobrancas.reduce((a, c) => a + c.valor, 0);
 
+  const revenueData = useMemo(() => {
+    const monthLabels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    const now = new Date();
+    const points = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1);
+      return {
+        month: date.getMonth(),
+        year: date.getFullYear(),
+        mes: monthLabels[date.getMonth()],
+        receita: 0,
+        meta: 0,
+      };
+    });
+
+    cobrancas.forEach((item) => {
+      const date = new Date(`${item.data}T00:00:00`);
+
+      if (Number.isNaN(date.getTime())) {
+        return;
+      }
+
+      const point = points.find(
+        (entry) => entry.month === date.getMonth() && entry.year === date.getFullYear(),
+      );
+
+      if (point) {
+        point.receita += item.valor;
+      }
+    });
+
+    return points.map(({ mes, receita, meta }) => ({ mes, receita, meta }));
+  }, [cobrancas]);
+
   function update<K extends keyof LancamentoForm>(k: K, v: LancamentoForm[K]) {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const [y, m, d] = form.data.split("-");
-    setCobrancas((prev) => [
-      {
-        id: Date.now(),
-        paciente: form.paciente,
-        plano: form.plano,
-        data: `${d}/${m}/${y}`,
-        valor: Number(form.valor),
-        status: form.status,
-        formaPagamento: form.formaPagamento,
-        referencia: form.referencia,
-        observacoes: form.observacoes,
-      },
-      ...prev,
-    ]);
-    setLancamentoOpen(false);
-    setForm(BLANK);
+
+    try {
+      setErrorMessage("");
+      const created = await fetchDashboardApi<DashboardFinanceEntry>("/api/dashboard/finance", {
+        method: "POST",
+        body: JSON.stringify({
+          ...form,
+          valor: Number(form.valor),
+        }),
+      });
+
+      setCobrancas((prev) => [created, ...prev]);
+      setLancamentoOpen(false);
+      setForm(BLANK);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Não foi possível salvar o lançamento.",
+      );
+    }
   }
 
   const newBtn = (
@@ -122,7 +185,9 @@ export default function FinanceiroPage() {
         </div>
       </div>
 
-      <RevenueChart />
+      {errorMessage ? <p className={styles.tdMuted}>{errorMessage}</p> : null}
+
+      <RevenueChart data={revenueData} />
 
       <div className={styles.tableWrapper}>
         <table className={styles.financeiroTable}>
@@ -149,7 +214,7 @@ export default function FinanceiroPage() {
                 <tr key={c.id}>
                   <td className={styles.tdBold}>{c.paciente}</td>
                   <td className={styles.tdMuted}>{c.plano}</td>
-                  <td className={styles.tdMuted}>{c.data}</td>
+                  <td className={styles.tdMuted}>{formatDisplayDate(c.data)}</td>
                   <td className={styles.tdBold}>R$ {fmt(c.valor)}</td>
                   <td className={styles.tdMuted}>{c.formaPagamento}</td>
                   <td className={styles.tdMuted}>{c.referencia || "—"}</td>

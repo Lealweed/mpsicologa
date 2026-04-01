@@ -1,26 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { X, UserPlus } from "lucide-react";
 import PageHeader from "../_components/PageHeader";
 import Modal from "../_components/Modal";
+import {
+  fetchDashboardApi,
+  type DashboardPatient,
+} from "@/lib/dashboard-api";
 import styles from "./pacientes.module.css";
 
-type Paciente = {
-  id: number;
-  nome: string;
-  email: string;
-  whatsapp: string;
-  telefone: string;
-  endereco: string;
-  sexo: string;
-  idade: string;
-  dataNascimento: string;
-  numeroSus: string;
-  cpf: string;
-  convenio: string;
-  plano: string;
-  observacoes: string;
+type Paciente = DashboardPatient & {
   initials: string;
 };
 
@@ -58,33 +48,73 @@ const BLANK: PacienteForm = {
   observacoes: "",
 };
 
+function buildInitials(nome: string) {
+  return nome
+    .split(" ")
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+function mapPaciente(patient: DashboardPatient): Paciente {
+  return {
+    ...patient,
+    initials: buildInitials(patient.nome),
+  };
+}
+
 export default function PacientesPage() {
   const [pacientes, setPacientes] = useState<Paciente[]>(INITIAL);
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const [cadastrarOpen, setCadastrarOpen] = useState(false);
   const [form, setForm] = useState<PacienteForm>(BLANK);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const selectedPaciente = pacientes.find((p) => p.id === selected);
+
+  const loadPacientes = useCallback(async () => {
+    try {
+      setErrorMessage("");
+      const data = await fetchDashboardApi<DashboardPatient[]>("/api/dashboard/patients");
+      setPacientes(data.map(mapPaciente));
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Não foi possível carregar os pacientes.",
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadPacientes();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [loadPacientes]);
 
   function update<K extends keyof PacienteForm>(k: K, v: PacienteForm[K]) {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  function handleCadastrar(e: React.FormEvent) {
+  async function handleCadastrar(e: React.FormEvent) {
     e.preventDefault();
-    const initials = form.nome
-      .split(" ")
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
 
-    setPacientes((prev) => [
-      ...prev,
-      { id: Date.now(), ...form, initials },
-    ]);
-    setCadastrarOpen(false);
-    setForm(BLANK);
+    try {
+      setErrorMessage("");
+      const created = await fetchDashboardApi<DashboardPatient>("/api/dashboard/patients", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+
+      setPacientes((prev) => [mapPaciente(created), ...prev]);
+      setCadastrarOpen(false);
+      setForm(BLANK);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Não foi possível salvar o paciente.",
+      );
+    }
   }
 
   const newBtn = (
@@ -101,6 +131,8 @@ export default function PacientesPage() {
         subtitle={`${pacientes.length} paciente${pacientes.length === 1 ? "" : "s"} cadastrado${pacientes.length === 1 ? "" : "s"}`}
         actions={newBtn}
       />
+
+      {errorMessage ? <p className={styles.tdMuted}>{errorMessage}</p> : null}
 
       <div className={styles.tableWrapper}>
         <table className={styles.pacientesTable}>

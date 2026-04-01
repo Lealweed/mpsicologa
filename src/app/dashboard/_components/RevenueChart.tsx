@@ -12,7 +12,13 @@ import {
 } from "recharts";
 import styles from "./RevenueChart.module.css";
 
-const data = [
+export type RevenueChartPoint = {
+  mes: string;
+  receita: number;
+  meta: number;
+};
+
+const DEFAULT_DATA: RevenueChartPoint[] = [
   { mes: "Out", receita: 0, meta: 0 },
   { mes: "Nov", receita: 0, meta: 0 },
   { mes: "Dez", receita: 0, meta: 0 },
@@ -64,7 +70,11 @@ function CustomTooltip({
   return null;
 }
 
-export default function RevenueChart() {
+export default function RevenueChart({
+  data = DEFAULT_DATA,
+}: {
+  data?: RevenueChartPoint[];
+}) {
   return (
     <div className={styles.wrapper}>
       <div className={styles.chartHeader}>

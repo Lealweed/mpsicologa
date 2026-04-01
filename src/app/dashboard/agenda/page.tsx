@@ -1,20 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, Clock, Video, Plus } from "lucide-react";
 import PageHeader from "../_components/PageHeader";
 import Modal from "../_components/Modal";
+import {
+  fetchDashboardApi,
+  type DashboardAppointment,
+} from "@/lib/dashboard-api";
 import styles from "./agenda.module.css";
 
-type Sessao = {
-  id: number;
-  hora: string;
-  paciente: string;
-  tipo: string;
-  canal: string;
-  status: string;
+type Sessao = DashboardAppointment & {
   initials: string;
-  observacoes: string;
 };
 
 type AgendaForm = {
@@ -39,6 +36,22 @@ const BLANK: AgendaForm = {
   observacoes: "",
 };
 
+function buildInitials(nome: string) {
+  return nome
+    .split(" ")
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+function mapSessao(item: DashboardAppointment): Sessao {
+  return {
+    ...item,
+    initials: buildInitials(item.paciente),
+  };
+}
+
 const todayLabel = new Date().toLocaleDateString("pt-BR", {
   day: "numeric",
   month: "long",
@@ -49,34 +62,54 @@ export default function AgendaPage() {
   const [sessoes, setSessoes] = useState<Sessao[]>(INITIAL);
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<AgendaForm>(BLANK);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const loadSessoes = useCallback(async () => {
+    try {
+      setErrorMessage("");
+      const data = await fetchDashboardApi<DashboardAppointment[]>("/api/dashboard/appointments");
+      setSessoes(data.map(mapSessao));
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Não foi possível carregar a agenda.",
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadSessoes();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [loadSessoes]);
 
   function update<K extends keyof AgendaForm>(k: K, v: AgendaForm[K]) {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const initials = form.paciente
-      .split(" ")
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
-    setSessoes((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        hora: form.hora,
-        paciente: form.paciente,
-        tipo: form.tipo,
-        canal: form.canal,
-        status: form.status,
-        initials,
-        observacoes: form.observacoes,
-      },
-    ]);
-    setModalOpen(false);
-    setForm(BLANK);
+
+    try {
+      setErrorMessage("");
+      const created = await fetchDashboardApi<DashboardAppointment>("/api/dashboard/appointments", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+
+      setSessoes((prev) => {
+        const next = [...prev, mapSessao(created)];
+        next.sort((a, b) => `${a.data}T${a.hora}`.localeCompare(`${b.data}T${b.hora}`));
+        return next;
+      });
+      setModalOpen(false);
+      setForm(BLANK);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Não foi possível salvar o agendamento.",
+      );
+    }
   }
 
   const newBtn = (
@@ -93,6 +126,8 @@ export default function AgendaPage() {
         subtitle={`Sessões organizadas para ${todayLabel}`}
         actions={newBtn}
       />
+
+      {errorMessage ? <p className={styles.agendaTipo}>{errorMessage}</p> : null}
 
       <div className={styles.agendaCard}>
         {sessoes.length === 0 ? (

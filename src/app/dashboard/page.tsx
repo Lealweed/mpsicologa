@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useUser } from "../_components/UserContext";
 import {
   CalendarDays,
@@ -13,6 +13,12 @@ import {
 } from "lucide-react";
 import Modal from "./_components/Modal";
 import SessionsChart from "./_components/SessionsChart";
+import {
+  fetchDashboardApi,
+  type DashboardAppointment,
+  type DashboardFinanceEntry,
+  type DashboardPatient,
+} from "@/lib/dashboard-api";
 import styles from "./page.module.css";
 
 /* ── types ─────────────────────────────────────────────── */
@@ -25,6 +31,7 @@ type PacienteForm = {
   sexo: string;
   idade: string;
   dataNascimento: string;
+  cpf: string;
   numeroSus: string;
   convenio: string;
   plano: string;
@@ -40,8 +47,10 @@ type AgendaForm = {
   observacoes: string;
 };
 type Session = {
+  id: string;
   nome: string;
   tipo: string;
+  data: string;
   hora: string;
   status: string;
   initials: string;
@@ -57,11 +66,38 @@ const BLANK_P: PacienteForm = {
   sexo: "",
   idade: "",
   dataNascimento: "",
+  cpf: "",
   numeroSus: "",
   convenio: "",
   plano: "",
   observacoes: "",
 };
+
+function buildInitials(nome: string) {
+  return nome
+    .split(" ")
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+function formatMoney(value: number) {
+  return value.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+}
+
+function mapAppointmentToSession(item: DashboardAppointment): Session {
+  return {
+    id: item.id,
+    nome: item.paciente,
+    tipo: item.tipo,
+    data: item.data,
+    hora: item.hora,
+    status: item.status,
+    initials: buildInitials(item.paciente),
+    canal: item.canal,
+  };
+}
 const BLANK_A: AgendaForm = {
   paciente: "",
   data: "",
@@ -89,38 +125,122 @@ export default function DashboardOverview() {
   const [cadastrarOpen, setCadastrarOpen] = useState(false);
   const [agendaOpen, setAgendaOpen] = useState(false);
   const [patientCount, setPatientCount] = useState(0);
+  const [financeSummary, setFinanceSummary] = useState({
+    total: 0,
+    pending: 0,
+  });
+  const [errorMessage, setErrorMessage] = useState("");
   const [pForm, setPForm] = useState<PacienteForm>(BLANK_P);
   const [aForm, setAForm] = useState<AgendaForm>(BLANK_A);
   const [sessions, setSessions] = useState<Session[]>(INITIAL_SESSIONS);
 
-  function handleCadastrar(e: React.FormEvent) {
+  const loadOverview = useCallback(async () => {
+    try {
+      setErrorMessage("");
+      const [patients, appointments, finance] = await Promise.all([
+        fetchDashboardApi<DashboardPatient[]>("/api/dashboard/patients"),
+        fetchDashboardApi<DashboardAppointment[]>("/api/dashboard/appointments"),
+        fetchDashboardApi<DashboardFinanceEntry[]>("/api/dashboard/finance"),
+      ]);
+
+      setPatientCount(patients.length);
+
+      const mappedSessions = appointments.map(mapAppointmentToSession);
+      mappedSessions.sort((a, b) => `${a.data}T${a.hora}`.localeCompare(`${b.data}T${b.hora}`));
+      setSessions(mappedSessions);
+
+      const total = finance.reduce((sum, item) => sum + item.valor, 0);
+      const pending = finance
+        .filter((item) => item.status !== "Pago")
+        .reduce((sum, item) => sum + item.valor, 0);
+
+      setFinanceSummary({ total, pending });
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Não foi possível carregar o painel.",
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadOverview();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [loadOverview]);
+
+  const sessionChartData = useMemo(() => {
+    const base = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab"].map((dia) => ({
+      dia,
+      sessoes: 0,
+    }));
+
+    sessions.forEach((session) => {
+      const date = new Date(`${session.data}T00:00:00`);
+
+      if (Number.isNaN(date.getTime())) {
+        return;
+      }
+
+      const dayMap = [null, "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"] as const;
+      const label = dayMap[date.getDay()];
+
+      if (!label) {
+        return;
+      }
+
+      const point = base.find((entry) => entry.dia === label);
+
+      if (point) {
+        point.sessoes += 1;
+      }
+    });
+
+    return base;
+  }, [sessions]);
+  async function handleCadastrar(e: React.FormEvent) {
     e.preventDefault();
-    setPatientCount((prev) => prev + 1);
-    setCadastrarOpen(false);
-    setPForm(BLANK_P);
+
+    try {
+      setErrorMessage("");
+      await fetchDashboardApi<DashboardPatient>("/api/dashboard/patients", {
+        method: "POST",
+        body: JSON.stringify(pForm),
+      });
+
+      setPatientCount((prev) => prev + 1);
+      setCadastrarOpen(false);
+      setPForm(BLANK_P);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Não foi possível salvar o paciente.",
+      );
+    }
   }
 
-  function handleNovoAgendamento(e: React.FormEvent) {
+  async function handleNovoAgendamento(e: React.FormEvent) {
     e.preventDefault();
-    const initials = aForm.paciente
-      .split(" ")
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
-    setSessions((prev) => [
-      ...prev,
-      {
-        nome: aForm.paciente,
-        tipo: aForm.tipo,
-        hora: aForm.hora,
-        status: aForm.status,
-        initials,
-        canal: aForm.canal,
-      },
-    ]);
-    setAgendaOpen(false);
-    setAForm(BLANK_A);
+
+    try {
+      setErrorMessage("");
+      const created = await fetchDashboardApi<DashboardAppointment>("/api/dashboard/appointments", {
+        method: "POST",
+        body: JSON.stringify(aForm),
+      });
+
+      setSessions((prev) => {
+        const next = [...prev, mapAppointmentToSession(created)];
+        next.sort((a, b) => `${a.data}T${a.hora}`.localeCompare(`${b.data}T${b.hora}`));
+        return next;
+      });
+      setAgendaOpen(false);
+      setAForm(BLANK_A);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Não foi possível salvar o agendamento.",
+      );
+    }
   }
 
   function updateP<K extends keyof PacienteForm>(k: K, v: PacienteForm[K]) {
@@ -157,6 +277,8 @@ export default function DashboardOverview() {
         </div>
       </header>
 
+      {errorMessage ? <p className={styles.date}>{errorMessage}</p> : null}
+
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statCardHeader}>
@@ -191,13 +313,17 @@ export default function DashboardOverview() {
               <Wallet size={17} />
             </div>
           </div>
-          <div className={styles.statValue}>R$&nbsp;0,00</div>
-          <p className={styles.statDesc}>Sem lançamentos financeiros</p>
+          <div className={styles.statValue}>R$&nbsp;{formatMoney(financeSummary.total)}</div>
+          <p className={styles.statDesc}>
+            {financeSummary.pending > 0
+              ? `R$ ${formatMoney(financeSummary.pending)} a receber`
+              : "Sem lançamentos financeiros"}
+          </p>
         </div>
       </div>
 
       <div className={styles.bentoGrid}>
-        <SessionsChart />
+        <SessionsChart data={sessionChartData} />
 
         <section className={styles.sessionsPanel}>
           <div className={styles.sessionsPanelHeader}>
@@ -325,6 +451,15 @@ export default function DashboardOverview() {
                 type="date"
                 value={pForm.dataNascimento}
                 onChange={(e) => updateP("dataNascimento", e.target.value)}
+              />
+            </label>
+            <label>
+              CPF
+              <input
+                type="text"
+                value={pForm.cpf}
+                onChange={(e) => updateP("cpf", e.target.value)}
+                placeholder="000.000.000-00"
               />
             </label>
             <label>
