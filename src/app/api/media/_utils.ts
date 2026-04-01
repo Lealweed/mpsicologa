@@ -1,7 +1,7 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 const PUBLIC_MEDIA_BUCKET = "public_media";
-const PUBLIC_MEDIA_FILE_SIZE_LIMIT = 200 * 1024 * 1024;
+const PUBLIC_MEDIA_FILE_SIZE_LIMIT = 50 * 1024 * 1024; // 50MB (limite do plano Supabase)
 const PUBLIC_MEDIA_ALLOWED_MIME_TYPES = ["image/*", "video/*"];
 const VIDEO_CATEGORY_PREFIX = "video:";
 
