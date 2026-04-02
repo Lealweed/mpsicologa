@@ -2,10 +2,16 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 const PUBLIC_MEDIA_BUCKET = "public_media";
 const PUBLIC_MEDIA_FILE_SIZE_LIMIT = 50 * 1024 * 1024; // 50MB (limite do plano Supabase)
-const PUBLIC_MEDIA_ALLOWED_MIME_TYPES = ["image/*", "video/*"];
+const PUBLIC_MEDIA_ALLOWED_MIME_TYPES = [
+  "image/*",
+  "video/*",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
 const VIDEO_CATEGORY_PREFIX = "video:";
 
-export type MediaKind = "image" | "video";
+export type MediaKind = "image" | "video" | "document";
 
 export type SiteMediaRow = {
   id: string;

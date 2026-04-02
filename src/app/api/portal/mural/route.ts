@@ -5,7 +5,9 @@ import { readSettingArray } from "../../dashboard/_store";
 export async function GET(request: Request) {
   try {
     const patient = await getPortalPatientFromRequest(request);
-    const announcements = await readSettingArray<PortalAnnouncement>("portal_mural");
+    const announcements = (await readSettingArray<PortalAnnouncement>("portal_mural"))
+      .filter((item) => item.active !== false)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
     const fallback = [
       {

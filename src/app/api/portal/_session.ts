@@ -57,6 +57,7 @@ export type PortalAnnouncement = {
   body: string;
   createdAt: string;
   audience?: "all" | "portal";
+  active?: boolean;
 };
 
 function normalizeName(value: string) {

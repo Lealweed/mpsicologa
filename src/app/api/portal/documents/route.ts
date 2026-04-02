@@ -8,6 +8,7 @@ type PortalDocument = {
   type: string;
   url: string;
   createdAt: string;
+  active?: boolean;
   patientId?: string;
   patientCpf?: string;
   paciente?: string;
@@ -19,6 +20,7 @@ export async function GET(request: Request) {
     const documents = await readSettingArray<PortalDocument>("patient_documents");
 
     const items = documents
+      .filter((item) => item.active !== false)
       .filter((item) => matchesPatientByRecord(patient, item))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 

@@ -8,7 +8,8 @@ export async function POST(request: Request) {
       kind?: MediaKind;
     };
     const fileName = String(body.fileName ?? "").trim();
-    const kind: MediaKind = body.kind === "video" ? "video" : "image";
+    const kind: MediaKind =
+      body.kind === "video" ? "video" : body.kind === "document" ? "document" : "image";
 
     if (!fileName) {
       return NextResponse.json(

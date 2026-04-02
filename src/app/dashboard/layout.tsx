@@ -3,7 +3,17 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, CalendarDays, Wallet, LogOut, Images, GraduationCap, MessageSquareQuote } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  CalendarDays,
+  Wallet,
+  LogOut,
+  Images,
+  GraduationCap,
+  MessageSquareQuote,
+  FolderKanban,
+} from "lucide-react";
 import { useUser } from "../_components/UserContext";
 import { supabase } from "../../lib/supabase/client";
 import styles from "./layout.module.css";
@@ -15,6 +25,7 @@ const navLinks = [
   { name: "Financeiro", path: "/dashboard/financeiro", icon: Wallet },
   { name: "Mídia", path: "/dashboard/midia", icon: Images },
   { name: "Depoimentos", path: "/dashboard/depoimentos", icon: MessageSquareQuote },
+  { name: "Portal", path: "/dashboard/portal", icon: FolderKanban },
   { name: "Inscrições", path: "/dashboard/inscricoes", icon: GraduationCap },
 ];
 

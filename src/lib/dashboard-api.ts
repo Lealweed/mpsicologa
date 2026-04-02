@@ -62,6 +62,27 @@ export type DashboardTestimonial = {
   createdAt: string;
 };
 
+export type DashboardPortalDocument = {
+  id: string;
+  paciente: string;
+  patientId?: string;
+  patientCpf?: string;
+  title: string;
+  type: string;
+  url: string;
+  active: boolean;
+  createdAt: string;
+};
+
+export type DashboardPortalAnnouncement = {
+  id: string;
+  title: string;
+  body: string;
+  active: boolean;
+  audience: "all" | "portal";
+  createdAt: string;
+};
+
 type SignedUploadResponse = {
   path: string;
   token: string;
@@ -114,7 +135,7 @@ export async function fetchDashboardApi<T>(path: string, init: RequestInit = {})
 
 export async function uploadDashboardFileToStorage(
   file: File,
-  kind: "image" | "video" = "image",
+  kind: "image" | "video" | "document" = "image",
 ) {
   const signedUploadResponse = await fetchDashboardApi<SignedUploadResponse>(
     "/api/media/upload-url",
