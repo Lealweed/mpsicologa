@@ -1,13 +1,10 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { X, UserPlus } from "lucide-react";
+import { X, UserPlus, PencilLine } from "lucide-react";
 import PageHeader from "../_components/PageHeader";
 import Modal from "../_components/Modal";
-import {
-  fetchDashboardApi,
-  type DashboardPatient,
-} from "@/lib/dashboard-api";
+import { fetchDashboardApi, type DashboardPatient } from "@/lib/dashboard-api";
 import styles from "./pacientes.module.css";
 
 type Paciente = DashboardPatient & {
@@ -28,6 +25,8 @@ type PacienteForm = {
   convenio: string;
   plano: string;
   observacoes: string;
+  portalEnabled: boolean;
+  portalPassword: string;
 };
 
 const INITIAL: Paciente[] = [];
@@ -46,11 +45,14 @@ const BLANK: PacienteForm = {
   convenio: "",
   plano: "",
   observacoes: "",
+  portalEnabled: false,
+  portalPassword: "",
 };
 
 function buildInitials(nome: string) {
   return nome
     .split(" ")
+    .filter(Boolean)
     .map((part) => part[0])
     .slice(0, 2)
     .join("")
@@ -68,6 +70,7 @@ export default function PacientesPage() {
   const [pacientes, setPacientes] = useState<Paciente[]>(INITIAL);
   const [selected, setSelected] = useState<string | null>(null);
   const [cadastrarOpen, setCadastrarOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<PacienteForm>(BLANK);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -97,18 +100,58 @@ export default function PacientesPage() {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
+  function openCreateModal() {
+    setEditingId(null);
+    setForm(BLANK);
+    setCadastrarOpen(true);
+  }
+
+  function openEditModal(patient: Paciente) {
+    setEditingId(patient.id);
+    setForm({
+      nome: patient.nome,
+      email: patient.email,
+      whatsapp: patient.whatsapp,
+      telefone: patient.telefone,
+      endereco: patient.endereco,
+      sexo: patient.sexo,
+      idade: patient.idade,
+      dataNascimento: patient.dataNascimento,
+      numeroSus: patient.numeroSus,
+      cpf: patient.cpf,
+      convenio: patient.convenio,
+      plano: patient.plano,
+      observacoes: patient.observacoes,
+      portalEnabled: patient.portalEnabled,
+      portalPassword: "",
+    });
+    setSelected(null);
+    setCadastrarOpen(true);
+  }
+
   async function handleCadastrar(e: React.FormEvent) {
     e.preventDefault();
 
     try {
       setErrorMessage("");
-      const created = await fetchDashboardApi<DashboardPatient>("/api/dashboard/patients", {
-        method: "POST",
-        body: JSON.stringify(form),
+      const saved = await fetchDashboardApi<DashboardPatient>("/api/dashboard/patients", {
+        method: editingId ? "PUT" : "POST",
+        body: JSON.stringify({
+          ...form,
+          id: editingId ?? undefined,
+        }),
       });
 
-      setPacientes((prev) => [mapPaciente(created), ...prev]);
+      setPacientes((prev) => {
+        if (editingId) {
+          return prev.map((item) => (item.id === saved.id ? mapPaciente(saved) : item));
+        }
+
+        return [mapPaciente(saved), ...prev];
+      });
+
       setCadastrarOpen(false);
+      setEditingId(null);
       setForm(BLANK);
     } catch (error) {
       setErrorMessage(
@@ -118,7 +161,7 @@ export default function PacientesPage() {
   }
 
   const newBtn = (
-    <button className={styles.newBtn} onClick={() => setCadastrarOpen(true)}>
+    <button className={styles.newBtn} onClick={openCreateModal}>
       <UserPlus size={15} />
       Cadastrar Paciente
     </button>
@@ -143,23 +186,20 @@ export default function PacientesPage() {
               <th>Email</th>
               <th>Sexo / Idade</th>
               <th>Plano</th>
+              <th>Portal</th>
               <th>SUS / Convênio</th>
             </tr>
           </thead>
           <tbody>
             {pacientes.length === 0 ? (
               <tr>
-                <td className={styles.tdMuted} colSpan={6}>
+                <td className={styles.tdMuted} colSpan={7}>
                   Nenhum paciente cadastrado ainda.
                 </td>
               </tr>
             ) : (
               pacientes.map((p) => (
-                <tr
-                  key={p.id}
-                  className={styles.pacienteRow}
-                  onClick={() => setSelected(p.id)}
-                >
+                <tr key={p.id} className={styles.pacienteRow} onClick={() => setSelected(p.id)}>
                   <td>
                     <div className={styles.pacienteCell}>
                       <div className={styles.pacienteAvatar}>{p.initials}</div>
@@ -172,7 +212,18 @@ export default function PacientesPage() {
                     {p.sexo || "—"}
                     {p.idade ? ` · ${p.idade} anos` : ""}
                   </td>
-                  <td><span className={styles.planoBadge}>{p.plano || "Sem plano"}</span></td>
+                  <td>
+                    <span className={styles.planoBadge}>{p.plano || "Sem plano"}</span>
+                  </td>
+                  <td>
+                    <span
+                      className={`${styles.planoBadge} ${
+                        p.portalEnabled ? styles.statusActive : styles.statusInactive
+                      }`}
+                    >
+                      {p.portalEnabled ? "Ativo" : "Fechado"}
+                    </span>
+                  </td>
                   <td className={styles.tdMuted}>{p.numeroSus || p.convenio || "—"}</td>
                 </tr>
               ))
@@ -192,6 +243,17 @@ export default function PacientesPage() {
             <div className={styles.prontuarioPlan}>{selectedPaciente.plano || "Sem plano definido"}</div>
             <div className={styles.prontuarioDivider} />
 
+            <div className={styles.prontuarioActions}>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={() => openEditModal(selectedPaciente)}
+              >
+                <PencilLine size={15} />
+                Editar cadastro
+              </button>
+            </div>
+
             <p className={styles.prontuarioSectionLabel}>Contato</p>
             <ul className={styles.prontuarioList}>
               <li>Email: {selectedPaciente.email || "Não informado"}</li>
@@ -210,6 +272,13 @@ export default function PacientesPage() {
               <li>Convênio: {selectedPaciente.convenio || "Não informado"}</li>
             </ul>
 
+            <p className={styles.prontuarioSectionLabel}>Acesso ao portal</p>
+            <ul className={styles.prontuarioList}>
+              <li>Status: {selectedPaciente.portalEnabled ? "Liberado para o paciente" : "Ainda não liberado"}</li>
+              <li>Login do paciente: {selectedPaciente.cpf || "Informe o CPF para criar o acesso"}</li>
+              <li>Senha: definida pela Dra no cadastro ou na edição do perfil</li>
+            </ul>
+
             <p className={styles.prontuarioSectionLabel}>Observações</p>
             <p className={styles.prontuarioNotes}>
               {selectedPaciente.observacoes || "Nenhuma observação clínica ou administrativa registrada ainda."}
@@ -222,9 +291,10 @@ export default function PacientesPage() {
         isOpen={cadastrarOpen}
         onClose={() => {
           setCadastrarOpen(false);
+          setEditingId(null);
           setForm(BLANK);
         }}
-        title="Cadastrar Paciente"
+        title={editingId ? "Editar Paciente" : "Cadastrar Paciente"}
       >
         <form onSubmit={handleCadastrar}>
           <div className={styles.formGrid}>
@@ -333,6 +403,30 @@ export default function PacientesPage() {
                 <option>Convênio</option>
               </select>
             </label>
+            <label className={`${styles.formSpan2} ${styles.portalToggle}`}>
+              <input
+                type="checkbox"
+                checked={form.portalEnabled}
+                onChange={(e) => update("portalEnabled", e.target.checked)}
+              />
+              <span>Liberar acesso ao portal do paciente</span>
+            </label>
+            {form.portalEnabled ? (
+              <>
+                <label>
+                  Senha do portal
+                  <input
+                    type="text"
+                    value={form.portalPassword}
+                    onChange={(e) => update("portalPassword", e.target.value)}
+                    placeholder={editingId ? "Digite nova senha para trocar" : "Defina a senha do paciente"}
+                  />
+                </label>
+                <p className={`${styles.tdMuted} ${styles.portalHint}`}>
+                  O login do paciente será sempre o CPF informado acima.
+                </p>
+              </>
+            ) : null}
             <label className={styles.formSpan2}>
               Endereço
               <textarea
@@ -358,13 +452,14 @@ export default function PacientesPage() {
               className={styles.btnSecondary}
               onClick={() => {
                 setCadastrarOpen(false);
+                setEditingId(null);
                 setForm(BLANK);
               }}
             >
               Cancelar
             </button>
             <button type="submit" className={styles.btnPrimary}>
-              Salvar paciente
+              {editingId ? "Salvar alterações" : "Salvar paciente"}
             </button>
           </div>
         </form>

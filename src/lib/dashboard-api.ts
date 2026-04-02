@@ -16,6 +16,7 @@ export type DashboardPatient = {
   plano: string;
   observacoes: string;
   createdAt: string;
+  portalEnabled: boolean;
 };
 
 export type DashboardAppointment = {
@@ -28,6 +29,8 @@ export type DashboardAppointment = {
   status: string;
   observacoes: string;
   createdAt: string;
+  patientId?: string;
+  patientCpf?: string;
 };
 
 export type DashboardFinanceEntry = {
@@ -41,6 +44,8 @@ export type DashboardFinanceEntry = {
   referencia: string;
   observacoes: string;
   createdAt: string;
+  patientId?: string;
+  patientCpf?: string;
 };
 
 export type DashboardTestimonial = {

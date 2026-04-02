@@ -17,12 +17,22 @@ type DashboardFinanceEntry = {
   referencia: string;
   observacoes: string;
   createdAt: string;
+  patientId?: string;
+  patientCpf?: string;
 };
 
 const SETTINGS_KEY = "dashboard_finance_entries";
 
 function normalizeString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeName(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
 }
 
 export async function GET(request: Request) {
@@ -43,6 +53,12 @@ export async function POST(request: Request) {
     await ensureDashboardUser(request);
     const body = (await request.json().catch(() => ({}))) as Partial<DashboardFinanceEntry>;
     const valor = Number(body.valor ?? 0);
+    const patients = await readSettingArray<{ id: string; nome: string; cpf?: string }>(
+      "dashboard_patients",
+    );
+    const linkedPatient = patients.find(
+      (item) => normalizeName(item.nome) === normalizeName(normalizeString(body.paciente)),
+    );
 
     const item: DashboardFinanceEntry = {
       id: crypto.randomUUID(),
@@ -58,6 +74,8 @@ export async function POST(request: Request) {
       referencia: normalizeString(body.referencia),
       observacoes: normalizeString(body.observacoes),
       createdAt: new Date().toISOString(),
+      patientId: linkedPatient?.id,
+      patientCpf: linkedPatient?.cpf,
     };
 
     if (!item.paciente || !item.plano || !item.data || item.valor <= 0) {

@@ -1,14 +1,30 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from "next/server";
+import { readSettingArray } from "../../dashboard/_store";
+import { getPortalPatientFromRequest, matchesPatientByRecord } from "../_session";
 
-export async function GET(req: Request) {
-  const token = req.headers.get('authorization')?.replace('Bearer ', '');
-  if (!token) return NextResponse.json([], { status: 401 });
-  const supabase = createClient(token);
-  // Busca documentos do paciente
-  const { data } = await supabase
-    .from('patient_documents')
-    .select('id, title, type, url')
-    .order('created_at', { ascending: false });
-  return NextResponse.json(data || []);
+type PortalDocument = {
+  id: string;
+  title: string;
+  type: string;
+  url: string;
+  createdAt: string;
+  patientId?: string;
+  patientCpf?: string;
+  paciente?: string;
+};
+
+export async function GET(request: Request) {
+  try {
+    const patient = await getPortalPatientFromRequest(request);
+    const documents = await readSettingArray<PortalDocument>("patient_documents");
+
+    const items = documents
+      .filter((item) => matchesPatientByRecord(patient, item))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+    return NextResponse.json(items);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Falha ao carregar os documentos.";
+    return NextResponse.json({ error: message }, { status: 401 });
+  }
 }

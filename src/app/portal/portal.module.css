@@ -1,129 +1,301 @@
-/* Portal do Paciente - CSS principal */
-
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #e6cfc7 0%, #b48a78 100%);
+  background: linear-gradient(135deg, #f8f0ea 0%, #e5c2b2 100%);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: 'Inter', sans-serif;
+  padding: 2rem 1rem;
+  font-family: "Inter", sans-serif;
+}
+
+.loginBox,
+.shell {
+  width: 100%;
+  max-width: 1080px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(180, 138, 120, 0.22);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(128, 92, 77, 0.12);
+  backdrop-filter: blur(12px);
 }
 
 .loginBox {
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(180, 138, 120, 0.15);
-  padding: 2.5rem 2rem;
-  max-width: 350px;
-  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+}
+
+.shell {
+  padding: 1.5rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(180, 138, 120, 0.14);
+  color: #8d5d4b;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.title,
+.portalTitle {
+  font-family: "Playfair Display", serif;
+  color: #8d5d4b;
+  margin: 0;
 }
 
 .title {
-  font-family: 'Playfair Display', serif;
   font-size: 2rem;
-  color: #b48a78;
   text-align: center;
-  margin-bottom: 0.5rem;
+}
+
+.subtitle,
+.portalMeta,
+.cardText,
+.note,
+.emptyText {
+  color: #7d6458;
+}
+
+.subtitle {
+  margin: -0.2rem 0 0.5rem;
+  text-align: center;
+  line-height: 1.5;
 }
 
 .inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.45rem;
+}
+
+.inputGroup label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #5f493f;
 }
 
 .input {
-  border: 1px solid #e6cfc7;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
+  border: 1px solid #ddc0b3;
+  border-radius: 12px;
+  padding: 0.85rem 0.95rem;
   font-size: 1rem;
-  background: #fff8f5;
-  color: #b48a78;
+  background: #fffaf8;
+  color: #6f5347;
   outline: none;
-  transition: border 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
+
 .input:focus {
-  border: 1.5px solid #b48a78;
+  border-color: #b48a78;
+  box-shadow: 0 0 0 4px rgba(180, 138, 120, 0.12);
+}
+
+.button,
+.secondaryButton {
+  border: none;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .button {
-  background: linear-gradient(90deg, #b48a78 0%, #e6cfc7 100%);
+  background: linear-gradient(135deg, #b48a78 0%, #8d5d4b 100%);
   color: #fff;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  padding: 0.9rem 0;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: background 0.2s;
 }
-.button:active {
-  background: #b48a78;
+
+.secondaryButton {
+  background: #fff8f5;
+  color: #8d5d4b;
+  border: 1px solid #e2c9be;
 }
 
 .error {
-  color: #b04848;
-  background: #fff0f0;
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
+  color: #9d2d2d;
+  background: #fff1f1;
+  border: 1px solid #f1c7c7;
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
   font-size: 0.95rem;
-  text-align: center;
+}
+
+.portalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.portalTitle {
+  font-size: 2rem;
+  margin-top: 0.45rem;
+}
+
+.portalMeta {
+  margin: 0.25rem 0 0;
+  font-size: 0.96rem;
+}
+
+.summaryGrid,
+.contentGrid,
+.listGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.summaryGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 1rem;
+}
+
+.contentGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.listGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .tabs {
   display: flex;
-  justify-content: space-between;
-  background: #fff8f5;
-  border-radius: 12px;
-  margin: 1.5rem 0 1rem 0;
-  box-shadow: 0 2px 8px rgba(180, 138, 120, 0.07);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
 }
 
 .tab {
-  flex: 1;
-  padding: 1rem 0.5rem;
-  text-align: center;
-  font-family: 'Playfair Display', serif;
-  font-size: 1.1rem;
-  color: #b48a78;
-  background: transparent;
-  border: none;
-  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #e2c9be;
+  background: #fff8f5;
+  color: #8d5d4b;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  font-weight: 600;
 }
+
 .tabActive {
-  background: #e6cfc7;
-  color: #a06c5a;
+  background: linear-gradient(135deg, #b48a78 0%, #8d5d4b 100%);
+  color: #fff;
+  border-color: transparent;
 }
 
 .tabPanel {
-  width: 100%;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .card {
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(180, 138, 120, 0.08);
-  padding: 1.5rem 1.2rem;
-  margin-bottom: 1.2rem;
+  border-radius: 18px;
+  border: 1px solid rgba(180, 138, 120, 0.18);
+  box-shadow: 0 8px 20px rgba(128, 92, 77, 0.06);
+  padding: 1.2rem;
+}
+
+.cardLabel {
+  margin: 0 0 0.45rem;
+  color: #9a7768;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cardValue,
+.cardValueSmall,
+.sectionTitle {
+  color: #5f493f;
+}
+
+.cardValue {
+  display: block;
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.cardValueSmall {
+  display: block;
+  font-size: 1.05rem;
+  margin-bottom: 0.35rem;
+}
+
+.sectionTitle {
+  font-family: "Playfair Display", serif;
+  margin: 0 0 0.85rem;
+  font-size: 1.2rem;
+}
+
+.list {
+  margin: 0;
+  padding-left: 1rem;
+  line-height: 1.8;
+  color: #5f493f;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #5f493f;
+}
+
+.status {
+  display: inline-flex;
+  align-self: flex-start;
+  margin-top: 0.65rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(180, 138, 120, 0.12);
+  color: #8d5d4b;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.note {
+  margin: 0.55rem 0 0;
+  line-height: 1.55;
+}
+
+.link {
+  color: #8d5d4b;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .summaryGrid,
+  .contentGrid,
+  .listGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .portalHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 600px) {
-  .loginBox, .card, .tabPanel {
-    padding: 1.2rem 0.7rem;
+  .container {
+    padding: 1rem 0.75rem;
   }
+
+  .loginBox,
+  .shell {
+    padding: 1rem;
+  }
+
   .tabs {
     flex-direction: column;
-    gap: 0.5rem;
   }
+
   .tab {
-    padding: 0.7rem 0.2rem;
-    font-size: 1rem;
+    width: 100%;
   }
 }

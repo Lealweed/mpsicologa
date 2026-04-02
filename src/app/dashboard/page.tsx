@@ -36,6 +36,8 @@ type PacienteForm = {
   convenio: string;
   plano: string;
   observacoes: string;
+  portalEnabled: boolean;
+  portalPassword: string;
 };
 type AgendaForm = {
   paciente: string;
@@ -71,6 +73,8 @@ const BLANK_P: PacienteForm = {
   convenio: "",
   plano: "",
   observacoes: "",
+  portalEnabled: false,
+  portalPassword: "",
 };
 
 function buildInitials(nome: string) {
@@ -491,6 +495,30 @@ export default function DashboardOverview() {
                 <option>Convênio</option>
               </select>
             </label>
+            <label className={styles.formSpan2} style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+              <input
+                type="checkbox"
+                checked={pForm.portalEnabled}
+                onChange={(e) => updateP("portalEnabled", e.target.checked)}
+              />
+              <span>Liberar acesso ao portal do paciente</span>
+            </label>
+            {pForm.portalEnabled ? (
+              <>
+                <label>
+                  Senha do portal
+                  <input
+                    type="text"
+                    value={pForm.portalPassword}
+                    onChange={(e) => updateP("portalPassword", e.target.value)}
+                    placeholder="Defina a senha do paciente"
+                  />
+                </label>
+                <p className={styles.date} style={{ margin: 0, alignSelf: "end" }}>
+                  O login será o CPF informado acima.
+                </p>
+              </>
+            ) : null}
             <label className={styles.formSpan2}>
               Endereço
               <textarea
